@@ -7,6 +7,7 @@ import ControlSorteo from "./pages/ControlSorteo";
 import Wishlist from "./pages/Wishlist";
 import Reglas from "./pages/Reglas";
 import MiAmigoSecreto from "./pages/MiAmigoSecreto";
+import ReglasAdmin from "./pages/ReglasAdmin";
 
 
 function App() {
@@ -200,6 +201,9 @@ function App() {
                 <button onClick={() => setPantalla("reglas")}className="boton-dashboard">
                   Ver reglas
                 </button>
+                <button onClick={() => setPantalla("reglasAdmin")}className="boton-dashboard">
+                  Reglas del sorteo
+                </button>
               </div>
             </div>
           </div>
@@ -241,7 +245,13 @@ function App() {
       {pantalla === "revelacion" && (
         <MiAmigoSecreto volver={() => setPantalla("participante")} />
       )}
-      
+      {pantalla === "reglasAdmin" && (
+        <ReglasAdmin
+          usuarios={usuarios}
+          eventos={eventos}
+          volver={() => setPantalla("admin")}
+        />
+      )}
     </div>
   );
 }
