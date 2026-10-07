@@ -32,8 +32,8 @@ function EventosAdmin({ eventos, setEventos, volver }) {
     setNombre("");
     setDescripcion("");
     setFecha("");
-    setMinimo("30");
-    setMaximo("60");
+    setMinimo("valor");
+    setMaximo("valor");
     setMostrarFormulario(false);
   }
 
