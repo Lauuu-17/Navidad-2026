@@ -4,6 +4,9 @@ import "./styles/global2.css";
 import EventosAdmin from "./pages/EventosAdmin";
 import UsuariosAdmin from "./pages/UsuariosAdmin";
 import ControlSorteo from "./pages/ControlSorteo";
+import Wishlist from "./pages/Wishlist";
+import Reglas from "./pages/Reglas";
+import MiAmigoSecreto from "./pages/MiAmigoSecreto";
 
 
 function App() {
@@ -183,6 +186,18 @@ function App() {
       {pantalla === "sorteo" && (
         <ControlSorteo volver={() => setPantalla("admin")} />
       )}
+      {pantalla === "wishlist" && (
+        <Wishlist volver={() => setPantalla("participante")} />
+      )}
+
+      {pantalla === "reglas" && (
+        <Reglas volver={() => setPantalla("participante")} />
+      )}
+
+      {pantalla === "revelacion" && (
+        <MiAmigoSecreto volver={() => setPantalla("participante")} />
+      )}
+      
     </div>
   );
 }
