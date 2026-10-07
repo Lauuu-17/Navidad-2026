@@ -1,6 +1,9 @@
 
 import { useState } from "react";
 import "./styles/global2.css";
+import EventosAdmin from "./pages/EventosAdmin";
+import UsuariosAdmin from "./pages/UsuariosAdmin";
+
 
 function App() {
   const [usuario, setUsuario] = useState("");
@@ -21,6 +24,7 @@ function App() {
       alert("Usuario o contraseña incorrectos");
     }
   }
+  
 
   function cerrarSesion() {
     setUsuario("");
@@ -169,24 +173,11 @@ function App() {
         </div>
       )}
 
-      {pantalla !== "login" &&
-       pantalla !== "admin" &&
-       pantalla !== "participante" && (
-        <div className="dashboard-theme">
-        <div className="contenido">
-          <button
-            className="boton-secundario"
-            onClick={() => setPantalla(rol)}
-          >
-            ← Volver
-          </button>
-
-          <h1>{pantalla}</h1>
-          <p>
-            Secccion extra coming soon.
-          </p>
-        </div>
-        </div>
+      {pantalla === "eventos" && (
+        <EventosAdmin volver={() => setPantalla("admin")} />
+      )}
+      {pantalla === "usuarios" && (
+        <UsuariosAdmin volver={() => setPantalla("admin")} />
       )}
     </div>
   );
