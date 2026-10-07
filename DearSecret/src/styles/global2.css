@@ -543,3 +543,212 @@ button, input, textarea {
   color: white;
   border-color: var(--detalles-dorados, #b59b73);
 }
+.estado-sorteo {
+  background: #e8e5dc;
+  color: #655345;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-weight: bold;
+  border: 1px solid #dfd5c6;
+}
+
+.resumen-sorteo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.resumen-card {
+  background: #fdfaf2;
+  padding: 25px;
+  border-radius: 4px;
+  border: 1px solid #dfd5c6;
+  box-shadow: inset 0 0 10px rgba(223, 213, 198, 0.1);
+}
+
+.resumen-card span {
+  color: #a39382;
+}
+
+.resumen-card strong {
+  display: block;
+  font-size: 32px;
+  color: #655345;
+  margin-top: 8px;
+}
+
+.control-sorteo {
+  background: #fdfaf2;
+  padding: 25px;
+  border-radius: 4px;
+  border: 1px solid #dfd5c6;
+  box-shadow: inset 0 0 10px rgba(223, 213, 198, 0.1);
+}
+
+.control-sorteo h2 {
+  margin-bottom: 20px;
+  color: #655345;
+}
+
+.lista-participantes {
+  display: flex;
+  flex-direction: column;
+}
+
+.participante-sorteo {
+  padding: 16px;
+  border-bottom: 1px solid #dfd5c6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #655345;
+}
+
+.estado-asignado {
+  color: #4a7c59;
+  font-weight: bold;
+}
+
+.estado-pendiente {
+  color: #b59b73;
+  font-weight: bold;
+}
+
+.acciones-sorteo {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.sorteo-publicado {
+  background: #e4eee6;
+  color: #4a7c59;
+  padding: 15px;
+  border-radius: 4px;
+  font-weight: bold;
+  border: 1px solid #cbdccf;
+}
+
+.wishlist-form {
+  background: #fdfaf2;
+  padding: 30px;
+  border-radius: 4px;
+  max-width: 800px;
+  border: 1px solid #dfd5c6;
+  box-shadow: inset 0 0 10px rgba(223, 213, 198, 0.1);
+}
+
+.wishlist-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wishlist-form input,
+.wishlist-form textarea {
+  padding: 13px;
+  border: 1px solid #dfd5c6;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  background: #fff;
+  color: #655345;
+}
+
+.wishlist-form textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+
+.reglas-card {
+  background: #fdfaf2;
+  padding: 35px;
+  border-radius: 4px;
+  max-width: 800px;
+  border: 1px solid #dfd5c6;
+  box-shadow: inset 0 0 10px rgba(223, 213, 198, 0.1);
+}
+
+.reglas-card h2 {
+  color: #655345;
+  margin-bottom: 25px;
+}
+
+.reglas-card h3 {
+  margin-top: 25px;
+  margin-bottom: 8px;
+  color: #655345;
+}
+
+.reglas-card p {
+  color: #a39382;
+  line-height: 1.7;
+}
+
+.secreto-bloqueado,
+.secreto-revelado {
+  max-width: 700px;
+  margin: 60px auto;
+  text-align: center;
+  background: #fdfaf2;
+  padding: 50px 30px;
+  border-radius: 4px;
+  border: 1px solid #dfd5c6;
+  box-shadow: inset 0 0 15px rgba(223, 213, 198, 0.1);
+}
+
+.secreto-icono {
+  font-size: 70px;
+  margin-bottom: 20px;
+}
+
+.secreto-bloqueado h1,
+.secreto-revelado h1 {
+  color: #655345;
+  margin-bottom: 15px;
+}
+
+.secreto-bloqueado p,
+.secreto-revelado p {
+  color: #a39382;
+  line-height: 1.7;
+}
+
+.secreto-bloqueado span {
+  display: block;
+  margin-top: 20px;
+  color: #a39382;
+}
+
+.secreto-revelado span {
+  color: #a39382;
+}
+
+.secreto-revelado h1 {
+  font-size: 42px;
+  margin: 20px 0;
+}
+
+@media (max-width: 600px) {
+
+  .resumen-sorteo {
+    grid-template-columns: 1fr;
+  }
+
+  .titulo-seccion {
+    align-items: stretch;
+  }
+
+  .acciones-sorteo {
+    flex-direction: column;
+  }
+
+  .acciones-sorteo button {
+    width: 100%;
+  }
+
+  .participante-sorteo {
+    gap: 15px;
+  }
+}
