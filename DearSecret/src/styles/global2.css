@@ -475,4 +475,71 @@ button, input, textarea {
   .evento-card {
     padding: 20px;
   }
+  
+}
+.tabla-contenedor {
+  background: var(--bg-card, #fdfaf2);
+  border: 1px solid var(--borde-contenedor, #dfd5c6);
+  border-radius: 4px;
+  overflow-x: auto;
+  box-shadow: inset 0 0 10px rgba(223, 213, 198, 0.1);
+  margin-bottom: 30px;
+}
+
+.tabla-usuarios {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  color: var(--texto-oscuro, #655345);
+}
+
+.tabla-usuarios th {
+  background: #ebe1d4;
+  color: var(--texto-oscuro, #655345);
+  font-weight: 600;
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--borde-contenedor, #dfd5c6);
+}
+
+.tabla-usuarios td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borde-contenedor, #dfd5c6);
+  vertical-align: middle;
+}
+
+.tabla-usuarios tbody tr:hover {
+  background-color: var(--bg-card-hover, #f7f1e4);
+}
+
+.tabla-usuarios tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.estado-activo {
+  display: inline-block;
+  background: #e4eee6;
+  color: #4a7c59;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #cbdccf;
+}
+
+.boton-tabla {
+  padding: 6px 14px;
+  font-size: 12px;
+  background-color: #fff;
+  color: var(--texto-oscuro, #655345);
+  border: 1px solid var(--borde-contenedor, #dfd5c6);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.boton-tabla:hover {
+  background-color: var(--detalles-dorados, #b59b73);
+  color: white;
+  border-color: var(--detalles-dorados, #b59b73);
 }
