@@ -126,6 +126,9 @@ function App() {
                 <button onClick={() => setPantalla("sorteo")} className="boton-dashboard">
                   Abrir control
                 </button>
+                <button onClick={() => setPantalla("reglasAdmin")} className="boton-dashboard">
+                  Reglas del sorteo
+                </button>
               </div>
             </div>
           </div>
@@ -171,10 +174,7 @@ function App() {
                 <button onClick={() => setPantalla("reglas")} className="boton-dashboard">
                   Ver reglas
                 </button>
-                {/* Nota: Asegúrate de si el participante realmente debe ver esto */}
-                <button onClick={() => setPantalla("reglasAdmin")} className="boton-dashboard">
-                  Reglas del sorteo
-                </button>
+
               </div>
             </div>
           </div>
