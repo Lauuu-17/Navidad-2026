@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import "./styles/global2.css";
 import EventosAdmin from "./pages/EventosAdmin";
@@ -9,31 +8,18 @@ import Reglas from "./pages/Reglas";
 import MiAmigoSecreto from "./pages/MiAmigoSecreto";
 import ReglasAdmin from "./pages/ReglasAdmin";
 
-
 function App() {
-  const [usuarios, setUsuarios] = useState([
-    {
-      id: 1,
-      nombre: "Fernando",
-      usuario: "fernando",
-      eventoId: 1
-    },
-    {
-      id: 2,
-      nombre: "Laura",
-      usuario: "laura",
-      eventoId: 1
-    },
-    {
-      id: 3,
-      nombre: "Erica",
-      usuario: "erica",
-      eventoId: 1
-    }
-  ]);
+  const [usuario, setUsuario] = useState(""); 
   const [contrasena, setContrasena] = useState("");
   const [pantalla, setPantalla] = useState("login");
   const [rol, setRol] = useState("");
+  
+  const [usuarios, setUsuarios] = useState([
+    { id: 1, nombre: "Fernando", usuario: "fernando", eventoId: 1 },
+    { id: 2, nombre: "Laura", usuario: "laura", eventoId: 1 },
+    { id: 3, nombre: "Erica", usuario: "erica", eventoId: 1 }
+  ]);
+
   const [eventos, setEventos] = useState([
     {
       id: 1,
@@ -45,6 +31,7 @@ function App() {
       estado: "Preparación"
     }
   ]);
+
   function iniciarSesion(e) {
     e.preventDefault();
 
@@ -58,7 +45,6 @@ function App() {
       alert("Usuario o contraseña incorrectos");
     }
   }
-  
 
   function cerrarSesion() {
     setUsuario("");
@@ -73,11 +59,8 @@ function App() {
         <div className="login-container">
           <div className="login-card">
             <div className="logo">🎁</div>
-
             <h1>Dear Secret</h1>
-            <p className="subtitulo">
-              TITULO
-            </p>
+            <p className="subtitulo">TITULO</p>
 
             <form onSubmit={iniciarSesion}>
               <label>Usuario</label>
@@ -102,10 +85,7 @@ function App() {
                 Iniciar sesión
               </button>
             </form>
-
-            <p className="nota">
-              Texto prueba.
-            </p>
+            <p className="nota">Texto prueba.</p>
           </div>
         </div>
       )}
@@ -127,7 +107,7 @@ function App() {
               <div className="tarjeta">
                 <h3>📅 Eventos</h3>
                 <p>Crea eventos y configura todo</p>
-                <button onClick={() => setPantalla("eventos")}className="boton-dashboard">
+                <button onClick={() => setPantalla("eventos")} className="boton-dashboard">
                   Gestionar eventos
                 </button>
               </div>
@@ -135,7 +115,7 @@ function App() {
               <div className="tarjeta">
                 <h3>👥 Usuarios</h3>
                 <p>Crea cuenta y asigna</p>
-                <button onClick={() => setPantalla("usuarios")}className="boton-dashboard">
+                <button onClick={() => setPantalla("usuarios")} className="boton-dashboard">
                   Gestionar usuarios
                 </button>
               </div>
@@ -143,7 +123,7 @@ function App() {
               <div className="tarjeta">
                 <h3>🎲 Control de sorteo</h3>
                 <p>Revisa participantes, reglas y asignaciones.</p>
-                <button onClick={() => setPantalla("sorteo")}className="boton-dashboard">
+                <button onClick={() => setPantalla("sorteo")} className="boton-dashboard">
                   Abrir control
                 </button>
               </div>
@@ -165,43 +145,34 @@ function App() {
             <div className="bienvenida">
               <span>Tu aventura comienza aquí</span>
               <h1>¡Bienvenido, _-----_!</h1>
-              <p>
-                Mensaje de bienvenida
-                mas cosas
-              </p>
-              
+              <p>Mensaje de bienvenida mas cosas</p>
             </div>
 
             <div className="tarjetas">
               <div className="tarjeta">
                 <h3>🎁 Mi amigo secreto</h3>
-                <p>
-                  CUando el evento incie podras ver a tu par.
-                </p>
-                <button onClick={() => setPantalla("revelacion")}className="boton-dashboard">
+                <p>Cuando el evento inicie podrás ver a tu par.</p>
+                <button onClick={() => setPantalla("revelacion")} className="boton-dashboard">
                   Ver mi amigo secreto
                 </button>
               </div>
 
               <div className="tarjeta">
                 <h3>💝 Mi Wishlist</h3>
-                <p>
-                  Comienza con yu carta a santa
-                </p>
-                <button onClick={() => setPantalla("wishlist")}className="boton-dashboard">
+                <p>Comienza con tu carta a santa</p>
+                <button onClick={() => setPantalla("wishlist")} className="boton-dashboard">
                   Editar wishlist
                 </button>
               </div>
 
               <div className="tarjeta">
                 <h3>📜 Reglas del evento</h3>
-                <p>
-                  Reglas para el juego.
-                </p>
-                <button onClick={() => setPantalla("reglas")}className="boton-dashboard">
+                <p>Reglas para el juego.</p>
+                <button onClick={() => setPantalla("reglas")} className="boton-dashboard">
                   Ver reglas
                 </button>
-                <button onClick={() => setPantalla("reglasAdmin")}className="boton-dashboard">
+                {/* Nota: Asegúrate de si el participante realmente debe ver esto */}
+                <button onClick={() => setPantalla("reglasAdmin")} className="boton-dashboard">
                   Reglas del sorteo
                 </button>
               </div>
@@ -234,6 +205,15 @@ function App() {
           volver={() => setPantalla("admin")}
         />
       )}
+
+      {pantalla === "reglasAdmin" && (
+        <ReglasAdmin
+          usuarios={usuarios}
+          eventos={eventos}
+          volver={() => setPantalla(rol === "admin" ? "admin" : "participante")}
+        />
+      )}
+
       {pantalla === "wishlist" && (
         <Wishlist volver={() => setPantalla("participante")} />
       )}
@@ -244,13 +224,6 @@ function App() {
 
       {pantalla === "revelacion" && (
         <MiAmigoSecreto volver={() => setPantalla("participante")} />
-      )}
-      {pantalla === "reglasAdmin" && (
-        <ReglasAdmin
-          usuarios={usuarios}
-          eventos={eventos}
-          volver={() => setPantalla("admin")}
-        />
       )}
     </div>
   );
