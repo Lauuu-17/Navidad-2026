@@ -3,6 +3,7 @@ import { useState } from "react";
 import "./styles/global2.css";
 import EventosAdmin from "./pages/EventosAdmin";
 import UsuariosAdmin from "./pages/UsuariosAdmin";
+import ControlSorteo from "./pages/ControlSorteo";
 
 
 function App() {
@@ -178,6 +179,9 @@ function App() {
       )}
       {pantalla === "usuarios" && (
         <UsuariosAdmin volver={() => setPantalla("admin")} />
+      )}
+      {pantalla === "sorteo" && (
+        <ControlSorteo volver={() => setPantalla("admin")} />
       )}
     </div>
   );
