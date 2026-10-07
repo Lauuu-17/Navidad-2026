@@ -1,28 +1,21 @@
 import { useState } from "react";
 
-function EventosAdmin({ volver }) {
+function EventosAdmin({ eventos, setEventos, volver }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-
-  const [eventos, setEventos] = useState([
-    {
-      id: 1,
-      nombre: "Intercambio de Navidad 2026",
-      descripcion: "Intercambio de regalos entre amigos.",
-      fecha: "24/12/2026",
-      minimo: "30",
-      maximo: "60",
-      estado: "Preparación"
-    }
-  ]);
 
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [fecha, setFecha] = useState("");
-  const [minimo, setMinimo] = useState("");
-  const [maximo, setMaximo] = useState("");
+  const [minimo, setMinimo] = useState("30");
+  const [maximo, setMaximo] = useState("60");
 
   function crearEvento(e) {
     e.preventDefault();
+
+    if (Number(minimo) > Number(maximo)) {
+      alert("El presupuesto mínimo.");
+      return;
+    }
 
     const nuevoEvento = {
       id: Date.now(),
@@ -39,61 +32,49 @@ function EventosAdmin({ volver }) {
     setNombre("");
     setDescripcion("");
     setFecha("");
-    setMinimo("");
-    setMaximo("");
-
+    setMinimo("30");
+    setMaximo("60");
     setMostrarFormulario(false);
   }
 
   return (
     <div className="contenido">
-
-      <button
-        className="boton-secundario"
-        onClick={volver}
-      >
+      <button className="boton-secundario" onClick={volver}>
         ← Volver al panel
       </button>
 
       <div className="titulo-seccion">
         <div>
           <h1>Eventos</h1>
-          <p>
-            Crea y administra los eventos de Ángel Secreto.
-          </p>
+          <p>Crea y administra los intercambios de regalos.</p>
         </div>
 
-        <button
-          onClick={() => setMostrarFormulario(true)}
-        >
+        <button onClick={() => setMostrarFormulario(true)}>
           + Crear evento
         </button>
       </div>
 
       {mostrarFormulario && (
         <div className="formulario-evento">
-
           <h2>Crear nuevo evento</h2>
 
           <form onSubmit={crearEvento}>
-
             <label>Nombre del evento</label>
             <input
-              type="text"
-              placeholder="Ej. Intercambio Navidad 2026"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
+              placeholder="Ej. Navidad 2026"
               required
             />
 
             <label>Descripción</label>
             <textarea
-              placeholder="Describe brevemente el evento"
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
+              placeholder="Descripción del intercambio"
             />
 
-            <label>Fecha del evento</label>
+            <label>Fecha del intercambio</label>
             <input
               type="date"
               value={fecha}
@@ -102,13 +83,11 @@ function EventosAdmin({ volver }) {
             />
 
             <div className="campos-dinero">
-
               <div>
-                <label>Presupuesto mínimo</label>
+                <label>Presupuesto mínimo (S/)</label>
                 <input
                   type="number"
                   min="0"
-                  placeholder="30"
                   value={minimo}
                   onChange={(e) => setMinimo(e.target.value)}
                   required
@@ -116,21 +95,18 @@ function EventosAdmin({ volver }) {
               </div>
 
               <div>
-                <label>Presupuesto máximo</label>
+                <label>Presupuesto máximo (S/)</label>
                 <input
                   type="number"
                   min="0"
-                  placeholder="60"
                   value={maximo}
                   onChange={(e) => setMaximo(e.target.value)}
                   required
                 />
               </div>
-
             </div>
 
             <div className="acciones-formulario">
-
               <button
                 type="button"
                 className="boton-secundario"
@@ -139,38 +115,22 @@ function EventosAdmin({ volver }) {
                 Cancelar
               </button>
 
-              <button type="submit">
-                Crear evento
-              </button>
-
+              <button type="submit">Guardar evento</button>
             </div>
-
           </form>
         </div>
       )}
 
       <div className="lista-eventos">
-
         {eventos.map((evento) => (
-
           <div className="evento-card" key={evento.id}>
-
-            <div className="evento-icono">
-              🎁
-            </div>
+            <div className="evento-icono">🎁</div>
 
             <div className="evento-info">
-
-              <span className="estado-evento">
-                {evento.estado}
-              </span>
-
               <h2>{evento.nombre}</h2>
-
               <p>{evento.descripcion}</p>
 
               <div className="datos-evento">
-
                 <span>
                   📅 {evento.fecha}
                 </span>
@@ -178,21 +138,17 @@ function EventosAdmin({ volver }) {
                 <span>
                   💰 S/ {evento.minimo} - S/ {evento.maximo}
                 </span>
-
               </div>
-
             </div>
 
-            <button>
-              Gestionar
-            </button>
-
+            <span className="estado-evento">{evento.estado}</span>
           </div>
-
         ))}
-
       </div>
 
+      {eventos.length === 0 && (
+        <p>Todavía no has creado eventoes.</p>
+      )}
     </div>
   );
 }
