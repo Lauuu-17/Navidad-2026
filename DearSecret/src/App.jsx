@@ -10,11 +10,40 @@ import MiAmigoSecreto from "./pages/MiAmigoSecreto";
 
 
 function App() {
-  const [usuario, setUsuario] = useState("");
+  const [usuarios, setUsuarios] = useState([
+    {
+      id: 1,
+      nombre: "Fernando",
+      usuario: "fernando",
+      eventoId: 1
+    },
+    {
+      id: 2,
+      nombre: "Laura",
+      usuario: "laura",
+      eventoId: 1
+    },
+    {
+      id: 3,
+      nombre: "Erica",
+      usuario: "erica",
+      eventoId: 1
+    }
+  ]);
   const [contrasena, setContrasena] = useState("");
   const [pantalla, setPantalla] = useState("login");
   const [rol, setRol] = useState("");
-
+  const [eventos, setEventos] = useState([
+    {
+      id: 1,
+      nombre: "Intercambio de Navidad 2026",
+      descripcion: "Intercambio de regalos entre amigos.",
+      fecha: "2026-12-24",
+      minimo: "30",
+      maximo: "60",
+      estado: "Preparación"
+    }
+  ]);
   function iniciarSesion(e) {
     e.preventDefault();
 
@@ -178,13 +207,28 @@ function App() {
       )}
 
       {pantalla === "eventos" && (
-        <EventosAdmin volver={() => setPantalla("admin")} />
+        <EventosAdmin
+          eventos={eventos}
+          setEventos={setEventos}
+          volver={() => setPantalla("admin")}
+        />
       )}
+
       {pantalla === "usuarios" && (
-        <UsuariosAdmin volver={() => setPantalla("admin")} />
+        <UsuariosAdmin
+          usuarios={usuarios}
+          setUsuarios={setUsuarios}
+          eventos={eventos}
+          volver={() => setPantalla("admin")}
+        />
       )}
+
       {pantalla === "sorteo" && (
-        <ControlSorteo volver={() => setPantalla("admin")} />
+        <ControlSorteo
+          usuarios={usuarios}
+          eventos={eventos}
+          volver={() => setPantalla("admin")}
+        />
       )}
       {pantalla === "wishlist" && (
         <Wishlist volver={() => setPantalla("participante")} />
