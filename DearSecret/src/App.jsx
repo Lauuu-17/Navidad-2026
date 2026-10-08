@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./styles/global2.css";
 import EventosAdmin from "./pages/EventosAdmin";
 import UsuariosAdmin from "./pages/UsuariosAdmin";
@@ -7,6 +7,7 @@ import Wishlist from "./pages/Wishlist";
 import Reglas from "./pages/Reglas";
 import MiAmigoSecreto from "./pages/MiAmigoSecreto";
 import ReglasAdmin from "./pages/ReglasAdmin";
+import { obtenerDatos } from "./services/api";
 
 function App() {
   const [usuario, setUsuario] = useState(""); 
@@ -31,6 +32,37 @@ function App() {
       estado: "Preparación"
     }
   ]);
+  const [cargandoEventos, setCargandoEventos] = useState(true);
+  const [errorEventos, setErrorEventos] = useState("");
+
+  async function cargarEventos() {
+    try {
+      setCargandoEventos(true);
+      setErrorEventos("");
+
+      const datos = await obtenerDatos("eventos");
+
+      const eventosConvertidos = datos.map((evento) => ({
+        id: evento.id,
+        nombre: evento.nombre,
+        descripcion: evento.descripcion || "",
+        fecha: evento.fecha,
+        minimo: evento.presupuesto_min,
+        maximo: evento.presupuesto_max,
+        estado: evento.estado
+      }));
+
+      setEventos(eventosConvertidos);
+    } catch (error) {
+      setErrorEventos(error.message);
+    } finally {
+      setCargandoEventos(false);
+    }
+  }
+
+  useEffect(() => {
+    cargarEventos();
+  }, []);
 
   function iniciarSesion(e) {
     e.preventDefault();
