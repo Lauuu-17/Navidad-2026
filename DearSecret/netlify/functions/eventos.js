@@ -1,21 +1,30 @@
-let eventos = [
-  {
-    id: 1,
-    nombre: "Intercambio de Navidad 2026",
-    descripcion: "Intercambio de regalos entre amigos.",
-    fecha: "2026-12-24",
-    minimo: 30,
-    maximo: 60,
-    estado: "Preparación"
-  }
-];
+import supabase from "./supabase.js";
 
 export default async (request, context) => {
   const metodo = request.method;
 
   if (metodo === "GET") {
+    const { data, error } = await supabase
+      .from("eventos")
+      .select("*")
+      .order("creado_en", { ascending: false });
+
+    if (error) {
+      return new Response(
+        JSON.stringify({
+          error: error.message
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
     return new Response(
-      JSON.stringify(eventos),
+      JSON.stringify(data),
       {
         status: 200,
         headers: {
@@ -28,20 +37,37 @@ export default async (request, context) => {
   if (metodo === "POST") {
     const datos = await request.json();
 
-    const nuevoEvento = {
-      id: Date.now(),
-      nombre: datos.nombre,
-      descripcion: datos.descripcion,
-      fecha: datos.fecha,
-      minimo: datos.minimo,
-      maximo: datos.maximo,
-      estado: "Preparación"
-    };
+    const { data, error } = await supabase
+      .from("eventos")
+      .insert([
+        {
+          nombre: datos.nombre,
+          descripcion: datos.descripcion,
+          fecha: datos.fecha,
+          presupuesto_min: datos.minimo,
+          presupuesto_max: datos.maximo,
+          estado: "Preparación"
+        }
+      ])
+      .select()
+      .single();
 
-    eventos.push(nuevoEvento);
+    if (error) {
+      return new Response(
+        JSON.stringify({
+          error: error.message
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
 
     return new Response(
-      JSON.stringify(nuevoEvento),
+      JSON.stringify(data),
       {
         status: 201,
         headers: {
@@ -52,10 +78,14 @@ export default async (request, context) => {
   }
 
   return new Response(
-    JSON.stringify({ mensaje: "Método no permitido" }),
+    JSON.stringify({
+      mensaje: "Método no permitido"
+    }),
     {
       status: 405,
-      headers: { "Content-Type": "application/json" }
+      headers: {
+        "Content-Type": "application/json"
+      }
     }
   );
 };
