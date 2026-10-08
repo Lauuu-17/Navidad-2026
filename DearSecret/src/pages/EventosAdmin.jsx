@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { enviarDatos } from "../services/api";
 
 function EventosAdmin({ eventos, setEventos, volver }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -9,32 +10,50 @@ function EventosAdmin({ eventos, setEventos, volver }) {
   const [minimo, setMinimo] = useState("30");
   const [maximo, setMaximo] = useState("60");
 
-  function crearEvento(e) {
+  async function crearEvento(e) {
     e.preventDefault();
 
     if (Number(minimo) > Number(maximo)) {
-      alert("El presupuesto mínimo.");
+      alert("El presupuesto mínimo no puede superar al máximo.");
       return;
     }
 
-    const nuevoEvento = {
-      id: Date.now(),
-      nombre: nombre,
-      descripcion: descripcion,
-      fecha: fecha,
-      minimo: minimo,
-      maximo: maximo,
-      estado: "Preparación"
-    };
+    try {
+      const nuevoEvento = await enviarDatos("eventos", {
+        nombre: nombre,
+        descripcion: descripcion,
+        fecha: fecha,
+        minimo: Number(minimo),
+        maximo: Number(maximo)
+      });
 
-    setEventos([...eventos, nuevoEvento]);
+      const eventoConvertido = {
+        id: nuevoEvento.id,
+        nombre: nuevoEvento.nombre,
+        descripcion: nuevoEvento.descripcion || "",
+        fecha: nuevoEvento.fecha,
+        minimo: nuevoEvento.presupuesto_min,
+        maximo: nuevoEvento.presupuesto_max,
+        estado: nuevoEvento.estado
+      };
 
-    setNombre("");
-    setDescripcion("");
-    setFecha("");
-    setMinimo("valor");
-    setMaximo("valor");
-    setMostrarFormulario(false);
+      setEventos((anteriores) => [
+        eventoConvertido,
+        ...anteriores
+      ]);
+
+      alert("Evento guardado correctamente.");
+
+      setNombre("");
+      setDescripcion("");
+      setFecha("");
+      setMinimo("30");
+      setMaximo("60");
+      setMostrarFormulario(false);
+
+    } catch (error) {
+      alert("No se pudo guardar el evento: " + error.message);
+    }
   }
 
   return (
@@ -147,7 +166,7 @@ function EventosAdmin({ eventos, setEventos, volver }) {
       </div>
 
       {eventos.length === 0 && (
-        <p>Todavía no has creado eventoes.</p>
+        <p>Todavía no has creado eventos.</p>
       )}
     </div>
   );
