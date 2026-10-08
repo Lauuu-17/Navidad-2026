@@ -7,3 +7,4 @@
 [dev]
   command = "npm run dev"
   targetPort = 5173
+  envFiles = [".env"]
