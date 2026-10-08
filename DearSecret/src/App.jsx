@@ -214,12 +214,27 @@ function App() {
       )}
 
       {pantalla === "eventos" && (
-        <EventosAdmin
-          eventos={eventos}
-          setEventos={setEventos}
-          volver={() => setPantalla("admin")}
-        />
+        <div className="dashboard-theme">
+          <div className="contenido">
+            {cargandoEventos && <p> Cargando eventos...</p>}
+            
+            {errorEventos && (
+              <div style={{ color: "red", padding: "10px", border: "1px solid red" }}>
+                ⚠️ Error al cargar eventos: {errorEventos}
+              </div>
+            )}
+
+            {!cargandoEventos && !errorEventos && (
+              <EventosAdmin
+                eventos={eventos}
+                setEventos={setEventos}
+                volver={() => setPantalla("admin")}
+              />
+            )}
+          </div>
+        </div>
       )}
+
 
       {pantalla === "usuarios" && (
         <UsuariosAdmin
