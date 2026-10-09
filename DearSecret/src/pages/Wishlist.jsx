@@ -31,8 +31,8 @@ function Wishlist({ usuarioId, eventoId, volver }) {
       setGuardando(true);
 
       await enviarDatos("wishlist", {
-        usuarioId: Number(usuarioId),
-        eventoId: Number(eventoId),
+        usuarioId: usuarioId,
+        eventoId: eventoId,
         regalo: wishlist.regalo,
         color: wishlist.color,
         caricatura: wishlist.caricatura,
