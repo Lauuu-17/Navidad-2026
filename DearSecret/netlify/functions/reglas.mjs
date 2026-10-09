@@ -1,32 +1,29 @@
 import supabase from "./supabase.js";
-import { verificarSesion, verificarAdministrador} from "./authHelper.js";
+import { verificarSesion, verificarAdministrador } from "./authHelper.js";
+
+function responder(datos, estado = 200) {
+  return new Response(JSON.stringify(datos), {
+    status: estado,
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+}
 
 export default async (request, context) => {
   const metodo = request.method;
-  if (request.method === "GET") {
+
+  if (metodo === "GET") {
     const acceso = await verificarSesion(request);
-
-    if (acceso.error) {
-      return acceso.error;
-    }
-  } else if (
-    request.method === "POST" ||
-    request.method === "DELETE"
-  ) {
+    if (acceso.error) return acceso.error;
+  } else if (metodo === "POST" || metodo === "DELETE") {
     const acceso = await verificarAdministrador(request);
-
-    if (acceso.error) {
-      return acceso.error;
-    }
+    if (acceso.error) return acceso.error;
   } else {
-    return new Response(
-      JSON.stringify({ error: "Método no permitido." }),
-      {
-        status: 405,
-        headers: { "Content-Type": "application/json" }
-      }
-    );
+    return responder({ error: "Método no permitido." }, 405);
   }
+
+
   if (metodo === "GET") {
     const { data, error } = await supabase
       .from("reglas")
@@ -34,148 +31,100 @@ export default async (request, context) => {
       .order("creado_en", { ascending: false });
 
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      });
+      return responder({ error: "No se pudieron consultar las reglas: " + error.message }, 500);
     }
 
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    return responder(data);
   }
 
+
   if (metodo === "POST") {
+    let cuerpo;
     try {
-      const datos = await request.json();
-
-      if (
-        !datos.eventoId ||
-        !datos.origenId ||
-        !datos.destinoId ||
-        !["mutua", "direccional", "manual"].includes(datos.tipo)
-      ) {
-        return new Response(
-          JSON.stringify({ error: "Los datos de la regla no son válidos." }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      if (datos.origenId === datos.destinoId) {
-        return new Response(
-          JSON.stringify({ error: "Una persona no puede asignarse a sí misma." }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      const { data: participantes, error: errorParticipantes } =
-        await supabase
-          .from("participaciones")
-          .select("usuario_id")
-          .eq("evento_id", datos.eventoId)
-          .in("usuario_id", [datos.origenId, datos.destinoId]);
-
-      if (errorParticipantes) {
-        return new Response(
-          JSON.stringify({ error: errorParticipantes.message }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      if (!participantes || participantes.length !== 2) {
-        return new Response(
-          JSON.stringify({
-            error: "Ambos usuarios deben participar en el evento seleccionado."
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      const { data, error } = await supabase
-        .from("reglas")
-        .insert([{
-          evento_id: datos.eventoId,
-          tipo: datos.tipo,
-          origen_id: datos.origenId,
-          destino_id: datos.destinoId
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-
-      return new Response(JSON.stringify(data), {
-        status: 201,
-        headers: { "Content-Type": "application/json" }
-      });
-    } catch (error) {
-      return new Response(
-        JSON.stringify({ error: "No se pudo procesar la regla." }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" }
-        }
-      );
+      cuerpo = await request.json();
+    } catch {
+      return responder({ error: "El cuerpo JSON no es válido." }, 400);
     }
+
+    const { eventoId, tipo, origenId, destinoId } = cuerpo;
+
+    // Validación de campos obligatorios
+    if (!eventoId || !tipo || !origenId || !destinoId) {
+      return responder({ error: "Debes completar todos los campos de la regla." }, 400);
+    }
+
+    if (!["mutua", "direccional", "manual"].includes(tipo)) {
+      return responder({ error: "El tipo de regla no es válido." }, 400);
+    }
+
+    if (origenId === destinoId) {
+      return responder({ error: "Una persona no puede tener una regla consigo misma." }, 400);
+    }
+
+    const { data: participaciones, error: errorParticipaciones } = await supabase
+      .from("participaciones")
+      .select("usuario_id, estado")
+      .eq("evento_id", eventoId)
+      .in("usuario_id", [origenId, destinoId]);
+
+    if (errorParticipaciones) {
+      return responder({ error: "No se pudieron comprobar las participaciones." }, 500);
+    }
+
+    const origenValido = participaciones?.some(p => p.usuario_id === origenId && p.estado === "activo");
+    const destinoValido = participaciones?.some(p => p.usuario_id === destinoId && p.estado === "activo");
+
+    if (!origenValido || !destinoValido) {
+      return responder({ error: "Ambas personas deben participar activamente en el evento seleccionado." }, 400);
+    }
+
+    const { data, error } = await supabase
+      .from("reglas")
+      .insert({
+        evento_id: eventoId,
+        tipo,
+        origen_id: origenId,
+        destino_id: destinoId
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return responder({ error: "No se pudo guardar la regla: " + error.message }, 500);
+    }
+
+    return responder({ mensaje: "Regla guardada correctamente.", regla: data }, 201);
   }
 
   if (metodo === "DELETE") {
+    let cuerpo;
     try {
-      const datos = await request.json();
-
-      const { error } = await supabase
-        .from("reglas")
-        .delete()
-        .eq("id", datos.id);
-
-      if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-
-      return new Response(
-        JSON.stringify({ mensaje: "Regla eliminada." }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" }
-        }
-      );
-    } catch (error) {
-      return new Response(
-        JSON.stringify({ error: "No se pudo eliminar la regla." }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" }
-        }
-      );
+      cuerpo = await request.json();
+    } catch {
+      return responder({ error: "El cuerpo JSON no es válido." }, 400);
     }
+
+    if (!cuerpo.id) {
+      return responder({ error: "Debes indicar el ID de la regla." }, 400);
+    }
+
+    const { data, error } = await supabase
+      .from("reglas")
+      .delete()
+      .eq("id", cuerpo.id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      return responder({ error: "No se pudo eliminar la regla: " + error.message }, 500);
+    }
+
+    if (!data) {
+      return responder({ error: "No se encontró la regla indicada." }, 404);
+    }
+
+    return responder({ mensaje: "Regla eliminada correctamente." }, 200);
   }
 
-  return new Response(
-    JSON.stringify({ mensaje: "Método no permitido" }),
-    {
-      status: 405,
-      headers: { "Content-Type": "application/json" }
-    }
-  );
+  return responder({ error: "Método no permitido." }, 405);
 };

@@ -54,3 +54,25 @@ export async function enviarDatos(nombreFuncion, datos) {
   const resultado = await respuesta.json();
   return resultado;
 }
+export async function eliminarDatos(nombreFuncion, datos) {
+  const token = await obtenerToken();
+
+  const respuesta = await fetch(`${API_URL}/${nombreFuncion}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(datos)
+  });
+
+  const resultado = await respuesta.json();
+
+  if (!respuesta.ok) {
+    throw new Error(
+      resultado.error || "No se pudieron eliminar los datos."
+    );
+  }
+
+  return resultado;
+}
