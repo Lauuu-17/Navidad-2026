@@ -317,20 +317,31 @@ function App() {
         <ReglasAdmin
           usuarios={usuarios}
           eventos={eventos}
+          reglas={reglas}
+          setReglas={setReglas}
           volver={() => setPantalla(rol === "admin" ? "admin" : "participante")}
         />
       )}
 
       {pantalla === "wishlist" && (
-        <Wishlist volver={() => setPantalla("participante")} />
+        
+        <Wishlist 
+        usuarioId={1}
+        eventoId={1}
+        volver={() => setPantalla("participante")} />
       )}
 
       {pantalla === "reglas" && (
-        <Reglas volver={() => setPantalla("participante")} />
+        <Reglas
+        eventoId={1}
+        volver={() => setPantalla("participante")} />
       )}
 
       {pantalla === "revelacion" && (
-        <MiAmigoSecreto volver={() => setPantalla("participante")} />
+        <MiAmigoSecreto 
+        usuarioId={1}
+        eventoId={1} 
+        volver={() => setPantalla("participante")} />
       )}
     </div>
   );
