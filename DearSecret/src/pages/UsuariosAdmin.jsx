@@ -69,19 +69,32 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
     }
   }
 
-  function asignarEvento(idUsuario, nuevoEventoId) {
-    const usuariosActualizados = usuarios.map((persona) => {
-      if (persona.id === idUsuario) {
-        return {
-          ...persona,
-          eventoId: nuevoEventoId === "" ? null : nuevoEventoId
-        };
-      }
-      return persona;
-    });
+    async function asignarEvento(idUsuario, nuevoEventoId) {
+    try {
+      await enviarDatos("participaciones", {
+        usuarioId: idUsuario,
+        eventoId: nuevoEventoId || null,
+        estado: nuevoEventoId ? "activo" : "pendiente"
+      });
 
-    setUsuarios(usuariosActualizados);
+      const usuariosActualizados = usuarios.map((persona) => {
+        if (persona.id === idUsuario) {
+          return {
+            ...persona,
+            eventoId: nuevoEventoId === "" ? null : nuevoEventoId
+          };
+        }
+        return persona;
+      });
+
+      setUsuarios(usuariosActualizados);
+      alert("Asignación de participante guardada permanentemente en la base de datos.");
+
+    } catch (error) {
+      alert("No se pudo guardar la participación en el servidor: " + error.message);
+    }
   }
+
 
   return (
     <div className="contenido">
