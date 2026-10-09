@@ -1,6 +1,6 @@
-import { useState } from "react";
-
-function Wishlist({ volver }) {
+import { useEffect, useState } from "react";
+import { obtenerDatos, enviarDatos} from "../services/api";
+function Wishlist({ usuarioId, eventoId, volver }) {
 
   const [wishlist, setWishlist] = useState({
     regalo: "",
@@ -10,6 +10,7 @@ function Wishlist({ volver }) {
     imagen: "",
     descripcion: ""
   });
+  const [guardando, setGuardando] = useState(false);
 
   function cambiarDato(e) {
     setWishlist({
@@ -18,10 +19,34 @@ function Wishlist({ volver }) {
     });
   }
 
-  function guardarWishlist(e) {
+  async function guardarWishlist(e) {
     e.preventDefault();
 
-    alert("Wishlist guardada correctamente.");
+    if (!usuarioId || !eventoId) {
+      alert("Debe existir un participante en el evento.");
+      return;
+    }
+
+    try {
+      setGuardando(true);
+
+      await enviarDatos("wishlist", {
+        usuarioId: Number(usuarioId),
+        eventoId: Number(eventoId),
+        regalo: wishlist.regalo,
+        color: wishlist.color,
+        caricatura: wishlist.caricatura,
+        enlace: wishlist.enlace,
+        imagen: wishlist.imagen,
+        descripcion: wishlist.descripcion
+      });
+
+      alert("Lista de deseos guardada correctamente.");
+    } catch (error) {
+      alert("No se pudo guardar la lista: " + error.message);
+    } finally {
+      setGuardando(false);
+    }
   }
 
   return (
@@ -118,8 +143,8 @@ function Wishlist({ volver }) {
             onChange={cambiarDato}
           />
 
-          <button type="submit">
-            Guardar wishlist
+          <button type="submit" disabled={guardando}>
+            {guardando ? "Guardando..." : "Guardar wishlist"}
           </button>
 
         </form>
