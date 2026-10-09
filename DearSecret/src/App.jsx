@@ -66,19 +66,28 @@ function App() {
 
       const datos = await obtenerDatos("usuarios");
 
-      const usuariosConvertidos = datos.map((usuario) => ({
-        id: usuario.id,
-        nombre: usuario.nombre,
-        usuario: usuario.usuario,
-        rol: usuario.rol,
-        eventoId:
-          usuario.eventos && usuario.eventos.length > 0
-            ? usuario.eventos[0].eventoId
-            : ""
-      }));
+      const usuariosConvertidos = datos.map((u) => {
+        let evId = "";
+        if (u.participaciones && u.participaciones.length > 0) {
+          evId = u.participaciones[0].evento_id;
+        } else if (u.evento_id) {
+          evId = u.evento_id;
+        } else if (u.eventos) {
+          evId = Array.isArray(u.eventos) && u.eventos.length > 0 ? u.eventos[0].id : (u.eventos.id || "");
+        }
+
+        return {
+          id: u.id,
+          nombre: u.nombre,
+          usuario: u.username || u.usuario || "", 
+          rol: u.rol || "participante",
+          eventoId: evId
+        };
+      });
 
       setUsuarios(usuariosConvertidos);
     } catch (error) {
+      console.error("Error en cargarUsuarios:", error);
       setErrorUsuarios(error.message);
     } finally {
       setCargandoUsuarios(false);
@@ -109,24 +118,28 @@ function App() {
     cargarReglas();
   }, []);;
 
-  function iniciarSesion(e) {
+    function iniciarSesion(e) {
     e.preventDefault();
 
-    const usuarioEncontrado = usuarios.find(
-      (u) => u.usuario.toLowerCase() === usuario.trim().toLowerCase() ||
-             u.username?.toLowerCase() === usuario.trim().toLowerCase()
-    );
     if (usuario === "admin" && contrasena === "1234") {
       setRol("admin");
       setPantalla("admin");
-    } else if (usuarioEncontrado && contrasena === "1234") {
-      setRol("participante");
-      setPantalla("participante");
+      return;
+    }
+
+    const usuarioEncontrado = usuarios.find(
+      (u) => u.usuario?.toLowerCase() === usuario.trim().toLowerCase()
+    );
+
+    if (usuarioEncontrado && contrasena === "1234") {
+      setRol(usuarioEncontrado.rol || "participante");
+      setPantalla(usuarioEncontrado.rol === "admin" ? "admin" : "participante");
       setUsuarioLogueado(usuarioEncontrado);
     } else {
       alert("Usuario o contraseña incorrectos");
     }
   }
+
 
 
   function cerrarSesion() {
@@ -332,20 +345,20 @@ function App() {
         
         <Wishlist 
         usuarioId={usuarioLogueado?.id}
-        eventoId={usuarioLogueado?.eventoId}
+        eventoId={usuarioLogueado?.eventoId || ""} 
         volver={() => setPantalla("participante")} />
       )}
 
       {pantalla === "reglas" && (
         <Reglas
-        eventoId={usuarioLogueado?.eventoId}
+        eventoId={usuarioLogueado?.eventoId || ""}
         volver={() => setPantalla("participante")} />
       )}
 
       {pantalla === "revelacion" && (
         <MiAmigoSecreto 
         usuarioId={usuarioLogueado?.id} 
-        eventoId={usuarioLogueado?.eventoId}
+        eventoId={usuarioLogueado?.eventoId || ""}
         volver={() => setPantalla("participante")} />
       )}
     </div>
