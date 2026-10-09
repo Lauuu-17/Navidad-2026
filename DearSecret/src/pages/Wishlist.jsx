@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { obtenerDatos, enviarDatos} from "../services/api";
-function Wishlist({ usuarioId, eventoId, volver }) {
+import { obtenerDatos, enviarDatos } from "../services/api";
 
+function Wishlist({ usuarioId, eventoId, volver }) {
   const [wishlist, setWishlist] = useState({
     regalo: "",
     color: "",
@@ -11,6 +11,35 @@ function Wishlist({ usuarioId, eventoId, volver }) {
     descripcion: ""
   });
   const [guardando, setGuardando] = useState(false);
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
+
+  useEffect(() => {
+    async function cargarWishlistExistente() {
+      if (!usuarioId) return;
+
+      try {
+        setCargandoHistorial(true);
+        const datos = await obtenerDatos(`wishlist?usuarioId=${usuarioId}`);
+
+        if (datos) {
+          setWishlist({
+            regalo: datos.regalo || "",
+            color: datos.color || "",
+            caricatura: datos.caricatura || "",
+            enlace: datos.enlace || "",
+            imagen: datos.imagen || "",
+            descripcion: datos.descripcion || ""
+          });
+        }
+      } catch (error) {
+        console.log("Sin registro previo en la base de datos:", error.message);
+      } finally {
+        setCargandoHistorial(false);
+      }
+    }
+
+    cargarWishlistExistente();
+  }, [usuarioId]);
 
   function cambiarDato(e) {
     setWishlist({
@@ -22,8 +51,8 @@ function Wishlist({ usuarioId, eventoId, volver }) {
   async function guardarWishlist(e) {
     e.preventDefault();
 
-    if (!usuarioId || !eventoId) {
-      alert("Debe existir un participante en el evento.");
+    if (!eventoId) {
+      alert("No puedes modificar tu lista de deseos porque no estás vinculado a ningún evento activo.");
       return;
     }
 
@@ -51,106 +80,88 @@ function Wishlist({ usuarioId, eventoId, volver }) {
 
   return (
     <div className="contenido">
-
-      <button
-        className="boton-secundario"
-        onClick={volver}
-      >
+      <button className="boton-secundario" onClick={volver}>
         ← Volver
       </button>
 
       <div className="titulo-seccion">
-
         <div>
           <h1>💝 Mi Wishlist</h1>
-
-          <p>
-            Cuéntale a tu amigo secreto qué cosas te gustan.
-          </p>
+          <p>Cuéntale a tu amigo secreto qué cosas te gustan.</p>
         </div>
-
       </div>
 
       <div className="wishlist-form">
+        {cargandoHistorial ? (
+          <p>🔄 Buscando tu lista de deseos...</p>
+        ) : (
+          <form onSubmit={guardarWishlist}>
+            <label>¿Qué tipo de regalo te gustaría recibir?</label>
+            <input
+              name="regalo"
+              placeholder="Ej. ropa, libros..."
+              value={wishlist.regalo}
+              onChange={cambiarDato}
+              disabled={!eventoId}
+            />
 
-        <form onSubmit={guardarWishlist}>
+            <label>Color favorito</label>
+            <input
+              name="color"
+              placeholder="Ej. verde"
+              value={wishlist.color}
+              onChange={cambiarDato}
+              disabled={!eventoId}
+            />
 
-          <label>
-            ¿Qué tipo de regalo te gustaría recibir?
-          </label>
+            <label>Caricatura, personaje o serie favorita</label>
+            <input
+              name="caricatura"
+              placeholder="Ej. Spider-Man"
+              value={wishlist.caricatura}
+              onChange={cambiarDato}
+              disabled={!eventoId}
+            />
 
-          <input
-            name="regalo"
-            placeholder="Ej. ropa, libros..."
-            value={wishlist.regalo}
-            onChange={cambiarDato}
-          />
+            <label>Link de algún producto</label>
+            <input
+              name="enlace"
+              type="url"
+              placeholder="https://..."
+              value={wishlist.enlace}
+              onChange={cambiarDato}
+              disabled={!eventoId}
+            />
 
-          <label>
-            Color favorito
-          </label>
+            <label>Link de una imagen</label>
+            <input
+              name="imagen"
+              type="url"
+              placeholder="https://..."
+              value={wishlist.imagen}
+              onChange={cambiarDato}
+              disabled={!eventoId}
+            />
 
-          <input
-            name="color"
-            placeholder="Ej. verde"
-            value={wishlist.color}
-            onChange={cambiarDato}
-          />
+            <label>Descripción</label>
+            <textarea
+              name="descripcion"
+              placeholder="Cuéntale algo más a tu amigo secreto..."
+              value={wishlist.descripcion}
+              onChange={cambiarDato}
+              disabled={!eventoId}
+            />
 
-          <label>
-            Caricatura, personaje o serie favorita
-          </label>
-
-          <input
-            name="caricatura"
-            placeholder="Ej. Spider-Man"
-            value={wishlist.caricatura}
-            onChange={cambiarDato}
-          />
-
-          <label>
-            Link de algún producto
-          </label>
-
-          <input
-            name="enlace"
-            type="url"
-            placeholder="https://..."
-            value={wishlist.enlace}
-            onChange={cambiarDato}
-          />
-
-          <label>
-            Link de una imagen
-          </label>
-
-          <input
-            name="imagen"
-            type="url"
-            placeholder="https://..."
-            value={wishlist.imagen}
-            onChange={cambiarDato}
-          />
-
-          <label>
-            Descripción
-          </label>
-
-          <textarea
-            name="descripcion"
-            placeholder="Cuéntale algo más a tu amigo secreto..."
-            value={wishlist.descripcion}
-            onChange={cambiarDato}
-          />
-
-          <button type="submit" disabled={guardando}>
-            {guardando ? "Guardando..." : "Guardar wishlist"}
-          </button>
-
-        </form>
-
+            <button type="submit" disabled={!eventoId || guardando}>
+              {!eventoId 
+                ? "Modo Lectura (Sin evento activo)" 
+                : guardando 
+                  ? "Guardando..." 
+                  : "Guardar wishlist"}
+              </button>
+          </form>
+        )}
       </div>
-
     </div>
   );
 }
