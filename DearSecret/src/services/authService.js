@@ -14,21 +14,28 @@ export async function iniciarSesion(username, contraseña) {
 
   const { data: perfil, error: errorPerfil } = await supabaseCliente
     .from("usuarios")
-    .select(`
-      id,
-      nombre,
-      username,
-      rol,
-      participaciones(evento_id, estado)
-    `)
-    .eq("id", data.user.id)
+    .select("id, nombre, username, rol, auth_user_id")
+    .eq("auth_user_id", data.user.id)
     .maybeSingle();
+
 
   if (errorPerfil || !perfil) {
     await supabaseCliente.auth.signOut();
     throw new Error(
       "El usuario autenticado no tiene un perfil configurado en la base de datos."
     );
+  }
+
+  try {
+    const { data: parts } = await supabaseCliente
+      .from("participaciones")
+      .select("evento_id, estado")
+      .eq("usuario_id", perfil.id);
+
+    perfil.participaciones = parts || [];
+  } catch (err) {
+    console.log("El usuario no cuenta con participaciones activas aún:", err.message);
+    perfil.participaciones = [];
   }
 
   return perfil;
