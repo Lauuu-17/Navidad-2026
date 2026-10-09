@@ -14,7 +14,8 @@ function App() {
   const [contrasena, setContrasena] = useState("");
   const [pantalla, setPantalla] = useState("login");
   const [rol, setRol] = useState("");
-  
+  const [usuarioLogueado, setUsuarioLogueado] = useState(null);
+
   const [usuarios, setUsuarios] = useState([]);
 
   const [eventos, setEventos] = useState([
