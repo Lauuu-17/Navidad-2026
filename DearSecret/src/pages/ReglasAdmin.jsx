@@ -12,7 +12,7 @@ function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
   const [usuarioDestino, setUsuarioDestino] = useState("");
 
   const participantes = usuarios.filter(
-    (usuario) => usuario.eventoId === Number(eventoId)
+    (u) => String(u.eventoId) === String(eventoId)
   );
   async function agregarRegla(e) {
     e.preventDefault();
