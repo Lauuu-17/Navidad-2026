@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { obtenerDatos,  enviarDatos} from "../services/api";
+import { useState } from "react";
+import { enviarDatos } from "../services/api";
+import supabaseCliente from "../services/supabaseCliente";
+
 function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
@@ -7,6 +9,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
   const [usuario, setUsuario] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [eventoId, setEventoId] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   async function crearUsuario(e) {
     e.preventDefault();
@@ -16,29 +19,53 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       return;
     }
 
+    const usuarioExiste = usuarios.some(
+      (persona) => persona.usuario?.toLowerCase() === usuario.trim().toLowerCase()
+    );
+
+    if (usuarioExiste) {
+      alert("Ese nombre de usuario ya existe.");
+      return;
+    }
+
     try {
+      setGuardando(true);
+        const { data: authData, error: authError } = await supabaseCliente.auth.signUp({
+        email: `${usuario.trim().toLowerCase()}@dearsecret.local`,
+        password: contrasena
+      });
+
+      if (authError) throw authError;
+
       const nuevoUsuario = await enviarDatos("usuarios", {
+        id: authData.user.id,
         nombre: nombre.trim(),
-        usuario: usuario.trim(),
-        eventoId: eventoId || null
+        username: usuario.trim().toLowerCase(),
+        rol: "participante",
+        eventoId: eventoId === "" ? null : eventoId
       });
 
       const usuarioConvertido = {
         id: nuevoUsuario.id,
         nombre: nuevoUsuario.nombre,
-        usuario: nuevoUsuario.usuario,
+        usuario: nuevoUsuario.username,
         rol: nuevoUsuario.rol,
         eventoId: nuevoUsuario.eventoId || ""
       };
 
-      setUsuarios((anteriores) => [
-        ...anteriores,
-        usuarioConvertido
-      ]);
+      setUsuarios((anteriores) => [...anteriores, usuarioConvertido]);
+      alert("Usuario registrado correctamente en el sistema.");
 
-      alert("Usuario registrado correctamente.");
+      setNombre("");
+      setUsuario("");
+      setContrasena("");
+      setEventoId("");
+      setMostrarFormulario(false);
+
     } catch (error) {
-      alert("No se pudo registrar: " + error.message);
+      alert("No se pudo registrar en la base de datos: " + error.message);
+    } finally {
+      setGuardando(false);
     }
   }
 
@@ -47,19 +74,14 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       if (persona.id === idUsuario) {
         return {
           ...persona,
-          eventoId: nuevoEventoId === "" ? null : Number(nuevoEventoId)
+          eventoId: nuevoEventoId === "" ? null : nuevoEventoId
         };
       }
-
       return persona;
     });
 
     setUsuarios(usuariosActualizados);
   }
-  const { data, error } = await supabaseCliente.auth.signUp({
-    email: `${usuario.trim().toLowerCase()}@dearsecret.local`,
-    password: contrasena
-  });
 
   return (
     <div className="contenido">
@@ -70,7 +92,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       <div className="titulo-seccion">
         <div>
           <h1>Usuarios</h1>
-          <p>Crea cuentas ddvcs.</p>
+          <p>Crea cuentas y administra participantes.</p>
         </div>
 
         <button onClick={() => setMostrarFormulario(true)}>
@@ -131,7 +153,9 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
                 Cancelar
               </button>
 
-              <button type="submit">Crear usuario</button>
+              <button type="submit" disabled={guardando}>
+                {guardando ? "Creando..." : "Crear usuario"}
+              </button>
             </div>
           </form>
         </div>
@@ -152,7 +176,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
           <tbody>
             {usuarios.map((persona) => {
               const eventoAsignado = eventos.find(
-                (evento) => evento.id === persona.eventoId
+                (evento) => String(evento.id) === String(persona.eventoId)
               );
 
               return (
