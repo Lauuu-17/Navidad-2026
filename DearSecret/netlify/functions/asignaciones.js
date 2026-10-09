@@ -1,24 +1,23 @@
 import supabase from "./supabase.js";
 import { verificarAdministrador } from "./authHelper.js";
+
+function responder(datos, estado = 200) {
+  return new Response(JSON.stringify(datos), {
+    status: estado,
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+}
+
 export default async (request, context) => {
-  const metodo = request.method;
   const acceso = await verificarAdministrador(request);
 
-    if (acceso.error) {
+  if (acceso.error) {
     return acceso.error;
-    }
+  }
 
-    if (request.method !== "GET" && request.method !== "POST") {
-    return new Response(
-        JSON.stringify({ error: "Método no permitido." }),
-        {
-        status: 405,
-        headers: { "Content-Type": "application/json" }
-        }
-    );
-    }
-
-  if (metodo === "GET") {
+  if (request.method === "GET") {
     const url = new URL(request.url);
     const sorteoId = url.searchParams.get("sorteoId");
 
@@ -33,154 +32,118 @@ export default async (request, context) => {
     const { data, error } = await consulta;
 
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      });
+      return responder({
+        error: "No se pudieron consultar las asignaciones."
+      }, 500);
     }
 
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    return responder(data);
   }
 
-  if (metodo === "POST") {
+  if (request.method === "POST") {
+    let cuerpo;
+
     try {
-      const datos = await request.json();
-
-      if (
-        !datos.sorteoId ||
-        !datos.participanteId ||
-        !datos.destinatarioId
-      ) {
-        return new Response(
-          JSON.stringify({
-            error: "Faltan datos para crear la asignación."
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      if (datos.participanteId === datos.destinatarioId) {
-        return new Response(
-          JSON.stringify({
-            error: "Un participante no puede regalarse a sí mismo."
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      const { data: sorteo, error: errorSorteo } = await supabase
-        .from("sorteos")
-        .select("id, evento_id, estado")
-        .eq("id", datos.sorteoId)
-        .maybeSingle();
-
-      if (errorSorteo) {
-        return new Response(JSON.stringify({ error: errorSorteo.message }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-
-      if (!sorteo) {
-        return new Response(
-          JSON.stringify({ error: "El sorteo no existe." }),
-          {
-            status: 404,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      if (sorteo.estado === "publicado" || sorteo.estado === "cancelado") {
-        return new Response(
-          JSON.stringify({
-            error: "No se pueden modificar las asignaciones de este sorteo."
-          }),
-          {
-            status: 409,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      const { data: participantes, error: errorParticipantes } =
-        await supabase
-          .from("participaciones")
-          .select("usuario_id")
-          .eq("evento_id", sorteo.evento_id)
-          .in("usuario_id", [
-            datos.participanteId,
-            datos.destinatarioId
-          ]);
-
-      if (errorParticipantes) {
-        return new Response(
-          JSON.stringify({ error: errorParticipantes.message }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      if (!participantes || participantes.length !== 2) {
-        return new Response(
-          JSON.stringify({
-            error: "Ambas personas deben estar inscritas en el evento."
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
-
-      const { data, error } = await supabase
-        .from("asignaciones")
-        .insert([{
-          sorteo_id: datos.sorteoId,
-          participante_id: datos.participanteId,
-          destinatario_id: datos.destinatarioId
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-
-      return new Response(JSON.stringify(data), {
-        status: 201,
-        headers: { "Content-Type": "application/json" }
-      });
-    } catch (error) {
-      return new Response(
-        JSON.stringify({ error: "No se pudo guardar la asignación." }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" }
-        }
-      );
+      cuerpo = await request.json();
+    } catch {
+      return responder({
+        error: "El cuerpo JSON no es válido."
+      }, 400);
     }
+
+    const { sorteoId, participanteId, destinatarioId } = cuerpo;
+
+    if (!sorteoId || !participanteId || !destinatarioId) {
+      return responder({
+        error: "Debes indicar el sorteo, el participante y el destinatario."
+      }, 400);
+    }
+
+    if (participanteId === destinatarioId) {
+      return responder({
+        error: "Una persona no puede ser su propio amigo secreto."
+      }, 400);
+    }
+
+    const { data: sorteo, error: errorSorteo } = await supabase
+      .from("sorteos")
+      .select("id, evento_id, estado")
+      .eq("id", sorteoId)
+      .maybeSingle();
+
+    if (errorSorteo) {
+      return responder({
+        error: "No se pudo comprobar el sorteo."
+      }, 500);
+    }
+
+    if (!sorteo) {
+      return responder({
+        error: "El sorteo no existe."
+      }, 404);
+    }
+
+    if (sorteo.estado === "publicado" || sorteo.estado === "cancelado") {
+      return responder({
+        error: "No puedes modificar las asignaciones de este sorteo."
+      }, 409);
+    }
+
+    const { data: participantes, error: errorParticipantes } = await supabase
+      .from("participaciones")
+      .select("usuario_id, estado")
+      .eq("evento_id", sorteo.evento_id)
+      .in("usuario_id", [participanteId, destinatarioId]);
+
+    if (errorParticipantes) {
+      return responder({
+        error: "No se pudieron comprobar los participantes."
+      }, 500);
+    }
+
+    const participanteValido = participantes?.some(
+      p => p.usuario_id === participanteId && p.estado === "activo"
+    );
+
+    const destinatarioValido = sizeof = participantes?.some(
+      p => p.usuario_id === destinatarioId && p.estado === "activo"
+    );
+
+    if (!participanteValido || !destinatarioValido) {
+      return responder({
+        error: "Ambas personas deben tener una participación activa en el evento."
+      }, 400);
+    }
+
+    const { data, error } = await supabase
+      .from("asignaciones")
+      .insert({
+        sorteo_id: sorteoId,
+        participante_id: participanteId,
+        destinatario_id: destinatarioId
+      })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === "23505") {
+        return responder({
+          error: "El participante ya tiene una asignación o el destinatario ya fue asignado en este sorteo."
+        }, 409);
+      }
+
+      return responder({
+        error: "No se pudo guardar la asignación: " + error.message
+      }, 500);
+    }
+
+    return responder({
+      mensaje: "Asignación guardada correctamente.",
+      asignacion: data
+    }, 201);
   }
 
-  return new Response(
-    JSON.stringify({ mensaje: "Método no permitido" }),
-    {
-      status: 405,
-      headers: { "Content-Type": "application/json" }
-    }
-  );
+  return responder({
+    error: "Método no permitido."
+  }, 405);
 };
