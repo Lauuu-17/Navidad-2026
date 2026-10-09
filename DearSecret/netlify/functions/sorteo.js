@@ -1,6 +1,22 @@
 import supabase from "./supabase.js";
+import { verificarAdministrador } from "./authHelper.js";
 
 export default async (request, context) => {
+  const acceso = await verificarAdministrador(request);
+
+  if (acceso.error) {
+    return acceso.error;
+  }
+
+  if (request.method !== "GET" && request.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Método no permitido." }),
+      {
+        status: 405,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+  }
   const metodo = request.method;
 
   if (metodo === "GET") {

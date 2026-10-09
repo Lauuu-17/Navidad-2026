@@ -15,11 +15,13 @@ function Wishlist({ usuarioId, eventoId, volver }) {
 
   useEffect(() => {
     async function cargarWishlistExistente() {
-      if (!usuarioId) return;
+      if (!eventoId) return;
 
       try {
         setCargandoHistorial(true);
-        const datos = await obtenerDatos(`wishlist?usuarioId=${usuarioId}`);
+        const datos = await obtenerDatos(
+          `wishlist?eventoId=${encodeURIComponent(eventoId)}`
+        );
 
         if (datos) {
           setWishlist({
@@ -39,7 +41,7 @@ function Wishlist({ usuarioId, eventoId, volver }) {
     }
 
     cargarWishlistExistente();
-  }, [usuarioId]);
+  }, [eventoId]);
 
   function cambiarDato(e) {
     setWishlist({
@@ -60,7 +62,6 @@ function Wishlist({ usuarioId, eventoId, volver }) {
       setGuardando(true);
 
       await enviarDatos("wishlist", {
-        usuarioId: usuarioId,
         eventoId: eventoId,
         regalo: wishlist.regalo,
         color: wishlist.color,

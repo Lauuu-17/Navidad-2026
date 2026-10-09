@@ -1,5 +1,5 @@
 import supabase from "./supabase.js";
-
+import { verificarAdministrador } from "./authHelper.js";
 export default async (request, context) => {
   const metodo = request.method;
 
