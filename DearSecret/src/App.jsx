@@ -8,14 +8,15 @@ import Reglas from "./pages/Reglas";
 import MiAmigoSecreto from "./pages/MiAmigoSecreto";
 import ReglasAdmin from "./pages/ReglasAdmin";
 import { obtenerDatos } from "./services/api";
-
+import {iniciarSesion as autenticarUsuario,cerrarSesion as cerrarSesionSupabase} from "./services/authService";
 function App() {
   const [usuario, setUsuario] = useState(""); 
   const [contrasena, setContrasena] = useState("");
   const [pantalla, setPantalla] = useState("login");
   const [rol, setRol] = useState("");
   const [usuarioLogueado, setUsuarioLogueado] = useState(null);
-
+  const [errorLogin, setErrorLogin] = useState("");
+  const [cargandoLogin, setCargandoLogin] = useState(false);
   const [usuarios, setUsuarios] = useState([]);
 
   const [eventos, setEventos] = useState([
@@ -119,25 +120,43 @@ function App() {
     cargarReglas();
   }, []);;
 
-    function iniciarSesion(e) {
+  async function iniciarSesion(e) {
     e.preventDefault();
 
-    if (usuario === "admin" && contrasena === "1234") {
-      setRol("admin");
-      setPantalla("admin");
-      return;
-    }
+    try {
+      setCargandoLogin(true);
+      setErrorLogin("");
 
-    const usuarioEncontrado = usuarios.find(
-      (u) => u.usuario?.toLowerCase() === usuario.trim().toLowerCase()
-    );
+      const perfil = await autenticarUsuario(
+        usuario.trim(),
+        contrasena
+      );
 
-    if (usuarioEncontrado && contrasena === "1234") {
-      setRol(usuarioEncontrado.rol || "participante");
-      setPantalla(usuarioEncontrado.rol === "admin" ? "admin" : "participante");
-      setUsuarioLogueado(usuarioEncontrado);
-    } else {
-      alert("Usuario o contraseña incorrectos");
+      const participacionActiva = perfil.participaciones?.find(
+        (p) => p.estado === "activo"
+      );
+
+      const usuarioActual = {
+        id: perfil.id,
+        nombre: perfil.nombre,
+        usuario: perfil.username,
+        rol: perfil.rol,
+        eventoId: participacionActiva?.evento_id || ""
+      };
+
+      setUsuarioLogueado(usuarioActual);
+      setRol(perfil.rol);
+
+      if (perfil.rol === "admin") {
+        setPantalla("admin");
+      } else {
+        setPantalla("participante");
+      }
+
+    } catch (error) {
+      setErrorLogin(error.message || "No se pudo iniciar sesión.");
+    } finally {
+      setCargandoLogin(false);
     }
   }
 
@@ -177,9 +196,14 @@ function App() {
                 onChange={(e) => setContrasena(e.target.value)}
                 required
               />
+              {errorLogin && (
+                <p style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>
+                  ⚠️ {errorLogin}
+                </p>
+              )}
 
-              <button type="submit" className="boton-login">
-                Iniciar sesión
+              <button type="submit" className="boton-login" disabled={cargandoLogin}>
+                {cargandoLogin ? "Validando..." : "Iniciar sesión"}
               </button>
             </form>
             <p className="nota">Texto prueba.</p>

@@ -56,6 +56,10 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
 
     setUsuarios(usuariosActualizados);
   }
+  const { data, error } = await supabaseCliente.auth.signUp({
+    email: `${usuario.trim().toLowerCase()}@dearsecret.local`,
+    password: contrasena
+  });
 
   return (
     <div className="contenido">
