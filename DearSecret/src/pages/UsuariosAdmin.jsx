@@ -70,10 +70,20 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
   }
 
   async function asignarEvento(idUsuario, nuevoEventoId) {
+    const participanteActual = usuarios.find((u) => String(u.id) === String(idUsuario));
+
+    if (!participanteActual) {
+      alert("No se encontró el participante localmente.");
+      return;
+    }
+
     try {
       await enviarDatos("usuarios", {
         id: idUsuario,
-        eventoId: nuevoEventoId || null 
+        nombre: participanteActual.nombre,
+        username: participanteActual.usuario,
+        rol: participanteActual.rol || "participante",
+        eventoId: nuevoEventoId === "" ? null : nuevoEventoId
       });
 
       const usuariosActualizados = usuarios.map((persona) => {
@@ -93,6 +103,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       alert("No se pudo guardar la participación en el servidor: " + error.message);
     }
   }
+
 
 
 
