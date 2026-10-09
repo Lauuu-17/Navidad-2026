@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { obtenerDatos,enviarDatos} from "../services/api";
+import { obtenerDatos, enviarDatos, eliminarDatos } from "../services/api";
+
 function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
   const [eventoId, setEventoId] = useState(
     eventos.length > 0 ? String(eventos[0].id) : ""
@@ -59,27 +61,13 @@ function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
   }
   async function eliminarRegla(id) {
     try {
-      const respuesta = await fetch(
-        "/.netlify/functions/reglas",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ id })
-        }
-      );
-
-      if (!respuesta.ok) {
-        const resultado = await respuesta.json();
-        throw new Error(resultado.error || "No se pudo eliminar la regla.");
-      }
+      await eliminarDatos("reglas", { id: id });
 
       setReglas((anteriores) => anteriores.filter((regla) => regla.id !== id));
+      
       alert("Regla eliminada correctamente.");
-
     } catch (error) {
-      alert(error.message);
+      alert("No se pudo eliminar la regla: " + error.message);
     }
   }
 
