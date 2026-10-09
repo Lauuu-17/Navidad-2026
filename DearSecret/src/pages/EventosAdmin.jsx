@@ -9,6 +9,7 @@ function EventosAdmin({ eventos, setEventos, volver }) {
   const [fecha, setFecha] = useState("");
   const [minimo, setMinimo] = useState("30");
   const [maximo, setMaximo] = useState("60");
+   const [guardando, setGuardando] = useState(false);
 
   async function crearEvento(e) {
     e.preventDefault();
@@ -19,6 +20,7 @@ function EventosAdmin({ eventos, setEventos, volver }) {
     }
 
     try {
+      setGuardando(true);
       const nuevoEvento = await enviarDatos("eventos", {
         nombre: nombre,
         descripcion: descripcion,
@@ -53,6 +55,8 @@ function EventosAdmin({ eventos, setEventos, volver }) {
 
     } catch (error) {
       alert("No se pudo guardar el evento: " + error.message);
+    } finally {
+      setGuardando(false);
     }
   }
 
@@ -134,7 +138,9 @@ function EventosAdmin({ eventos, setEventos, volver }) {
                 Cancelar
               </button>
 
-              <button type="submit">Guardar evento</button>
+              <button type="submit" disabled={guardando}>
+                {guardando ? "Guardando..." : "Guardar evento"}
+              </button>
             </div>
           </form>
         </div>

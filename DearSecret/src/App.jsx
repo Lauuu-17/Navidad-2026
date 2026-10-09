@@ -15,11 +15,7 @@ function App() {
   const [pantalla, setPantalla] = useState("login");
   const [rol, setRol] = useState("");
   
-  const [usuarios, setUsuarios] = useState([
-    { id: 1, nombre: "Fernando", usuario: "fernando", eventoId: 1 },
-    { id: 2, nombre: "Laura", usuario: "laura", eventoId: 1 },
-    { id: 3, nombre: "Erica", usuario: "erica", eventoId: 1 }
-  ]);
+  const [usuarios, setUsuarios] = useState([]);
 
   const [eventos, setEventos] = useState([
     {
@@ -34,6 +30,10 @@ function App() {
   ]);
   const [cargandoEventos, setCargandoEventos] = useState(true);
   const [errorEventos, setErrorEventos] = useState("");
+  const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
+  const [errorUsuarios, setErrorUsuarios] = useState("");
+  const [reglas, setReglas] = useState([]);
+  const [cargandoReglas, setCargandoReglas] = useState(false);
 
   async function cargarEventos() {
     try {
@@ -59,10 +59,55 @@ function App() {
       setCargandoEventos(false);
     }
   }
+  async function cargarUsuarios() {
+    try {
+      setCargandoUsuarios(true);
+      setErrorUsuarios("");
+
+      const datos = await obtenerDatos("usuarios");
+
+      const usuariosConvertidos = datos.map((usuario) => ({
+        id: usuario.id,
+        nombre: usuario.nombre,
+        usuario: usuario.usuario,
+        rol: usuario.rol,
+        eventoId:
+          usuario.eventos && usuario.eventos.length > 0
+            ? usuario.eventos[0].eventoId
+            : ""
+      }));
+
+      setUsuarios(usuariosConvertidos);
+    } catch (error) {
+      setErrorUsuarios(error.message);
+    } finally {
+      setCargandoUsuarios(false);
+    }
+  }
+  async function cargarReglas() {
+    try {
+      setCargandoReglas(true);
+      const datos = await obtenerDatos("reglas");
+      const reglasConvertidas = datos.map((regla) => ({
+        id: regla.id,
+        eventoId: regla.evento_id,
+        tipo: regla.tipo,
+        origenId: regla.origen_id,
+        destinoId: regla.destino_id
+      }));
+      setReglas(reglasConvertidas);
+    } catch (error) {
+      console.error("Error al cargar las reglas: " + error.message);
+    } finally {
+      setCargandoReglas(false);
+    }
+  }
 
   useEffect(() => {
     cargarEventos();
-  }, []);
+    cargarUsuarios();
+    cargarReglas();
+  }, []);;
 
   function iniciarSesion(e) {
     e.preventDefault();
@@ -77,6 +122,7 @@ function App() {
       alert("Usuario o contraseña incorrectos");
     }
   }
+
 
   function cerrarSesion() {
     setUsuario("");
@@ -237,12 +283,26 @@ function App() {
 
 
       {pantalla === "usuarios" && (
-        <UsuariosAdmin
-          usuarios={usuarios}
-          setUsuarios={setUsuarios}
-          eventos={eventos}
-          volver={() => setPantalla("admin")}
-        />
+        <div className="dashboard-theme">
+          <div className="contenido">
+            {cargandoUsuarios && <p>Cargando lista de usuarios...</p>}
+            
+            {errorUsuarios && (
+              <div style={{ color: "red", padding: "10px", border: "1px solid red" }}>
+                ⚠️ Error al cargar usuarios: {errorUsuarios}
+              </div>
+            )}
+
+            {!cargandoUsuarios && !errorUsuarios && (
+              <UsuariosAdmin
+                usuarios={usuarios}
+                setUsuarios={setUsuarios}
+                eventos={eventos}
+                volver={() => setPantalla("admin")}
+              />
+            )}
+          </div>
+        </div>
       )}
 
       {pantalla === "sorteo" && (

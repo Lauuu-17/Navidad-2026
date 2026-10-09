@@ -1,5 +1,5 @@
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { obtenerDatos,  enviarDatos} from "../services/api";
 function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
@@ -8,37 +8,38 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
   const [contrasena, setContrasena] = useState("");
   const [eventoId, setEventoId] = useState("");
 
-  function crearUsuario(e) {
+  async function crearUsuario(e) {
     e.preventDefault();
 
-    const usuarioExiste = usuarios.some(
-      (persona) =>
-        persona.usuario.toLowerCase() === usuario.trim().toLowerCase()
-    );
-
-    if (usuarioExiste) {
-      alert("Ese nombre de usuario ya existe.");
+    if (!nombre.trim() || !usuario.trim()) {
+      alert("Completa el nombre y el nombre de usuario.");
       return;
     }
 
-    const nuevoUsuario = {
-      id: Date.now(),
-      nombre: nombre.trim(),
-      usuario: usuario.trim(),
-      eventoId: eventoId === "" ? null : Number(eventoId)
-    };
+    try {
+      const nuevoUsuario = await enviarDatos("usuarios", {
+        nombre: nombre.trim(),
+        usuario: usuario.trim(),
+        eventoId: eventoId || null
+      });
 
-    setUsuarios([...usuarios, nuevoUsuario]);
+      const usuarioConvertido = {
+        id: nuevoUsuario.id,
+        nombre: nuevoUsuario.nombre,
+        usuario: nuevoUsuario.usuario,
+        rol: nuevoUsuario.rol,
+        eventoId: nuevoUsuario.eventoId || ""
+      };
 
-    setNombre("");
-    setUsuario("");
-    setContrasena("");
-    setEventoId("");
-    setMostrarFormulario(false);
+      setUsuarios((anteriores) => [
+        ...anteriores,
+        usuarioConvertido
+      ]);
 
-    alert(
-      "Usuario agregado"
-    );
+      alert("Usuario registrado correctamente.");
+    } catch (error) {
+      alert("No se pudo registrar: " + error.message);
+    }
   }
 
   function asignarEvento(idUsuario, nuevoEventoId) {

@@ -1,5 +1,5 @@
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { obtenerDatos,enviarDatos} from "../services/api";
 function ReglasAdmin({ usuarios, eventos, volver }) {
   const [eventoId, setEventoId] = useState(
     eventos.length > 0 ? String(eventos[0].id) : ""
