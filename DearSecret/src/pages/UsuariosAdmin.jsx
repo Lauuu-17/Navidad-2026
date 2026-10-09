@@ -69,12 +69,11 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
     }
   }
 
-    async function asignarEvento(idUsuario, nuevoEventoId) {
+  async function asignarEvento(idUsuario, nuevoEventoId) {
     try {
-      await enviarDatos("participaciones", {
-        usuarioId: idUsuario,
-        eventoId: nuevoEventoId || null,
-        estado: nuevoEventoId ? "activo" : "pendiente"
+      await enviarDatos("usuarios", {
+        id: idUsuario,
+        eventoId: nuevoEventoId || null 
       });
 
       const usuariosActualizados = usuarios.map((persona) => {
@@ -88,12 +87,13 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       });
 
       setUsuarios(usuariosActualizados);
-      alert("Asignación de participante guardada permanentemente en la base de datos.");
+      alert("Asignación de participante guardada de forma permanente.");
 
     } catch (error) {
       alert("No se pudo guardar la participación en el servidor: " + error.message);
     }
   }
+
 
 
   return (
