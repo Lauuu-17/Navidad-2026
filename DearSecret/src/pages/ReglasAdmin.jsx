@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { obtenerDatos,enviarDatos} from "../services/api";
-function ReglasAdmin({ usuarios, eventos, volver }) {
+function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
   const [eventoId, setEventoId] = useState(
     eventos.length > 0 ? String(eventos[0].id) : ""
   );
 
-  const [reglas, setReglas] = useState([]);
 
   const [tipoRegla, setTipoRegla] = useState("mutua");
   const [usuarioOrigen, setUsuarioOrigen] = useState("");
@@ -14,8 +13,7 @@ function ReglasAdmin({ usuarios, eventos, volver }) {
   const participantes = usuarios.filter(
     (usuario) => usuario.eventoId === Number(eventoId)
   );
-
-  function agregarRegla(e) {
+  async function agregarRegla(e) {
     e.preventDefault();
 
     if (!usuarioOrigen || !usuarioDestino) {
@@ -28,40 +26,61 @@ function ReglasAdmin({ usuarios, eventos, volver }) {
       return;
     }
 
-    const origen = participantes.find(
-      (usuario) => usuario.id === Number(usuarioOrigen)
-    );
+    try {
+      const nuevaRegla = await enviarDatos("reglas", {
+        eventoId: Number(eventoId),
+        tipo: tipoRegla,
+        origenId: Number(usuarioOrigen),
+        destinoId: Number(usuarioDestino)
+      });
 
-    const destino = participantes.find(
-      (usuario) => usuario.id === Number(usuarioDestino)
-    );
+      const origen = participantes.find((u) => u.id === Number(usuarioOrigen));
+      const destino = participantes.find((u) => u.id === Number(usuarioDestino));
 
-    if (!origen || !destino) {
-      return;
+      const reglaConvertida = {
+        id: nuevaRegla.id,
+        eventoId: nuevaRegla.evento_id,
+        tipo: nuevaRegla.tipo,
+        origenId: nuevaRegla.origen_id,
+        origenNombre: origen ? origen.nombre : "Desconocido",
+        destinoId: nuevaRegla.destino_id,
+        destinoNombre: destino ? destino.nombre : "Desconocido"
+      };
+
+      setReglas((anteriores) => [reglaConvertida, ...anteriores]);
+
+      alert("Regla guardada correctamente.");
+      setUsuarioOrigen("");
+      setUsuarioDestino("");
+
+    } catch (error) {
+      alert("No se pudo guardar la regla: " + error.message);
     }
-
-    const nuevaRegla = {
-      id: Date.now(),
-      eventoId: Number(eventoId),
-      tipo: tipoRegla,
-      origenId: origen.id,
-      origenNombre: origen.nombre,
-      destinoId: destino.id,
-      destinoNombre: destino.nombre
-    };
-
-    setReglas([...reglas, nuevaRegla]);
-
-    setUsuarioOrigen("");
-    setUsuarioDestino("");
   }
+  async function eliminarRegla(id) {
+    try {
+      const respuesta = await fetch(
+        "/.netlify/functions/reglas",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ id })
+        }
+      );
 
-  function eliminarRegla(id) {
-    const nuevasReglas = reglas.filter(
-      (regla) => regla.id !== id
-    );
+      if (!respuesta.ok) {
+        const resultado = await respuesta.json();
+        throw new Error(resultado.error || "No se pudo eliminar la regla.");
+      }
 
-    setReglas(nuevasReglas);
+      setReglas((anteriores) => anteriores.filter((regla) => regla.id !== id));
+      alert("Regla eliminada correctamente.");
+
+    } catch (error) {
+      alert(error.message);
+    }
   }
 
   function cambiarEvento(nuevoEvento) {
