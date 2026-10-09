@@ -179,6 +179,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
                 (evento) => String(evento.id) === String(persona.eventoId)
               );
 
+
               return (
                 <tr key={persona.id}>
                   <td>{persona.nombre}</td>
