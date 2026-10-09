@@ -1,7 +1,8 @@
 import supabaseCliente from "./supabaseCliente"; 
 
-const API_URL = "http://localhost:8888/.netlify/functions"; 
-
+const API_URL = window.location.hostname.includes("localhost") 
+  ? "http://localhost:8888/.netlify/functions" 
+  : "/.netlify/functions";
 async function obtenerToken() {
   const { data, error } = await supabaseCliente.auth.getSession();
 
