@@ -1,8 +1,29 @@
 import supabase from "./supabase.js";
+import { verificarSesion,verificarAdministrador} from "./authHelper.js";
 
 export default async (request, context) => {
   const metodo = request.method;
+  if (request.method === "GET") {
+    const acceso = await verificarSesion(request);
 
+    if (acceso.error) {
+      return acceso.error;
+    }
+  } else if (request.method === "POST") {
+    const acceso = await verificarAdministrador(request);
+
+    if (acceso.error) {
+      return acceso.error;
+    }
+  } else {
+    return new Response(
+      JSON.stringify({ error: "Método no permitido." }),
+      {
+        status: 405,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+  }
   if (metodo === "GET") {
     const { data, error } = await supabase
       .from("eventos")
