@@ -8,7 +8,8 @@ import Reglas from "./pages/Reglas";
 import MiAmigoSecreto from "./pages/MiAmigoSecreto";
 import ReglasAdmin from "./pages/ReglasAdmin";
 import { obtenerDatos } from "./services/api";
-import {iniciarSesion as autenticarUsuario,cerrarSesion as cerrarSesionSupabase} from "./services/authService";
+import { iniciarSesion as autenticarUsuario, cerrarSesion as cerrarSesionSupabase } from "./services/authService";
+
 function App() {
   const [usuario, setUsuario] = useState(""); 
   const [contrasena, setContrasena] = useState("");
@@ -61,6 +62,7 @@ function App() {
       setCargandoEventos(false);
     }
   }
+
   async function cargarUsuarios() {
     try {
       setCargandoUsuarios(true);
@@ -95,6 +97,7 @@ function App() {
       setCargandoUsuarios(false);
     }
   }
+
   async function cargarReglas() {
     try {
       setCargandoReglas(true);
@@ -118,7 +121,7 @@ function App() {
     cargarEventos();
     cargarUsuarios();
     cargarReglas();
-  }, []);;
+  }, []);
 
   async function iniciarSesion(e) {
     e.preventDefault();
@@ -160,12 +163,16 @@ function App() {
     }
   }
 
-
-
-  function cerrarSesion() {
+  async function cerrarSesion() {
+    try {
+      await cerrarSesionSupabase();
+    } catch (error) {
+      console.error("Error al cerrar sesión en el servidor:", error);
+    }
     setUsuario("");
     setContrasena("");
     setRol("");
+    setUsuarioLogueado(null);
     setPantalla("login");
   }
 
@@ -211,6 +218,7 @@ function App() {
         </div>
       )}
 
+      {/* PANTALLA: PANEL DE ADMINISTRACIÓN */}
       {pantalla === "admin" && (
         <div className="dashboard-theme">
           <header className="encabezado">
@@ -256,6 +264,7 @@ function App() {
         </div>
       )}
 
+      {/* PANTALLA: MENÚ PARTICIPANTE */}
       {pantalla === "participante" && (
         <div className="dashboard-theme">
           <header className="encabezado">
@@ -268,7 +277,7 @@ function App() {
           <div className="contenido">
             <div className="bienvenida">
               <span>Tu aventura comienza aquí</span>
-              <h1>¡Bienvenido, _-----_!</h1>
+              <h1>¡Bienvenido, {usuarioLogueado?.nombre || "Participante"}!</h1>
               <p>Mensaje de bienvenida mas cosas</p>
             </div>
 
@@ -295,53 +304,49 @@ function App() {
                 <button onClick={() => setPantalla("reglas")} className="boton-dashboard">
                   Ver reglas
                 </button>
-
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* VISTAS ELEMENTOS HIJOS */}
       {pantalla === "eventos" && (
         <div className="dashboard-theme">
           <div className="contenido">
-            {cargandoEventos && <p> Cargando eventos...</p>}
-            
-            {errorEventos && (
-              <div style={{ color: "red", padding: "10px", border: "1px solid red" }}>
-                ⚠️ Error al cargar eventos: {errorEventos}
+            {cargandoEventos && <p>Cargando eventos...</p>}
+                        {errorEventos && (
+              <div style={{ color: "red", padding: "10px" }}>
+                ⚠️ Error: {errorEventos}
               </div>
             )}
-
+            
             {!cargandoEventos && !errorEventos && (
-              <EventosAdmin
-                eventos={eventos}
-                setEventos={setEventos}
-                volver={() => setPantalla("admin")}
+              <EventosAdmin 
+                eventos={eventos} 
+                setEventos={setEventos} 
+                volver={() => setPantalla("admin")} 
               />
             )}
           </div>
         </div>
       )}
 
-
       {pantalla === "usuarios" && (
         <div className="dashboard-theme">
           <div className="contenido">
             {cargandoUsuarios && <p>Cargando lista de usuarios...</p>}
-            
             {errorUsuarios && (
-              <div style={{ color: "red", padding: "10px", border: "1px solid red" }}>
-                ⚠️ Error al cargar usuarios: {errorUsuarios}
+              <div style={{ color: "red", padding: "10px" }}>
+                ⚠️ Error: {errorUsuarios}
               </div>
             )}
-
             {!cargandoUsuarios && !errorUsuarios && (
-              <UsuariosAdmin
-                usuarios={usuarios}
-                setUsuarios={setUsuarios}
-                eventos={eventos}
-                volver={() => setPantalla("admin")}
+              <UsuariosAdmin 
+                usuarios={usuarios} 
+                setUsuarios={setUsuarios} 
+                eventos={eventos} 
+                volver={() => setPantalla("admin")} 
               />
             )}
           </div>
@@ -349,42 +354,44 @@ function App() {
       )}
 
       {pantalla === "sorteo" && (
-        <ControlSorteo
-          usuarios={usuarios}
-          eventos={eventos}
-          volver={() => setPantalla("admin")}
+        <ControlSorteo 
+          usuarios={usuarios} 
+          eventos={eventos} 
+          volver={() => setPantalla("admin")} 
         />
       )}
 
       {pantalla === "reglasAdmin" && (
-        <ReglasAdmin
-          usuarios={usuarios}
-          eventos={eventos}
-          reglas={reglas}
-          setReglas={setReglas}
-          volver={() => setPantalla(rol === "admin" ? "admin" : "participante")}
+        <ReglasAdmin 
+          usuarios={usuarios} 
+          eventos={eventos} 
+          reglas={reglas} 
+          setReglas={setReglas} 
+          volver={() => setPantalla("admin")} 
         />
       )}
 
       {pantalla === "wishlist" && (
-        
         <Wishlist 
-        usuarioId={usuarioLogueado?.id}
-        eventoId={usuarioLogueado?.eventoId || ""} 
-        volver={() => setPantalla("participante")} />
+          usuarioId={usuarioLogueado?.id} 
+          eventoId={usuarioLogueado?.eventoId || ""} 
+          volver={() => setPantalla("participante")} 
+        />
       )}
 
       {pantalla === "reglas" && (
-        <Reglas
-        eventoId={usuarioLogueado?.eventoId || ""}
-        volver={() => setPantalla("participante")} />
+        <Reglas 
+          eventoId={usuarioLogueado?.eventoId || ""} 
+          volver={() => setPantalla("participante")} 
+        />
       )}
 
       {pantalla === "revelacion" && (
         <MiAmigoSecreto 
-        usuarioId={usuarioLogueado?.id} 
-        eventoId={usuarioLogueado?.eventoId || ""}
-        volver={() => setPantalla("participante")} />
+          usuarioId={usuarioLogueado?.id} 
+          eventoId={usuarioLogueado?.eventoId || ""} 
+          volver={() => setPantalla("participante")} 
+        />
       )}
     </div>
   );
