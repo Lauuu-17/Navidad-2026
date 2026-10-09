@@ -112,12 +112,17 @@ function App() {
   function iniciarSesion(e) {
     e.preventDefault();
 
+    const usuarioEncontrado = usuarios.find(
+      (u) => u.usuario.toLowerCase() === usuario.trim().toLowerCase() ||
+             u.username?.toLowerCase() === usuario.trim().toLowerCase()
+    );
     if (usuario === "admin" && contrasena === "1234") {
       setRol("admin");
       setPantalla("admin");
-    } else if (usuario === "participante" && contrasena === "1234") {
+    } else if (usuarioEncontrado && contrasena === "1234") {
       setRol("participante");
       setPantalla("participante");
+      setUsuarioLogueado(usuarioEncontrado);
     } else {
       alert("Usuario o contraseña incorrectos");
     }
@@ -326,21 +331,21 @@ function App() {
       {pantalla === "wishlist" && (
         
         <Wishlist 
-        usuarioId={1}
-        eventoId={1}
+        usuarioId={usuarioLogueado?.id}
+        eventoId={usuarioLogueado?.eventoId}
         volver={() => setPantalla("participante")} />
       )}
 
       {pantalla === "reglas" && (
         <Reglas
-        eventoId={1}
+        eventoId={usuarioLogueado?.eventoId}
         volver={() => setPantalla("participante")} />
       )}
 
       {pantalla === "revelacion" && (
         <MiAmigoSecreto 
-        usuarioId={1}
-        eventoId={1} 
+        usuarioId={usuarioLogueado?.id} 
+        eventoId={usuarioLogueado?.eventoId}
         volver={() => setPantalla("participante")} />
       )}
     </div>
