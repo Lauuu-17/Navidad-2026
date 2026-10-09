@@ -1,40 +1,56 @@
-const API_URL = "/.netlify/functions";
+import supabaseCliente from "./supabaseCliente"; 
 
-export async function obtenerDatos(nombreFuncion) {
-  const respuesta = await fetch(
-    `${API_URL}/${nombreFuncion}`
-  );
+const API_URL = "http://localhost:8888/.netlify/functions"; 
 
-  const datos = await respuesta.json();
+async function obtenerToken() {
+  const { data, error } = await supabaseCliente.auth.getSession();
 
-  if (!respuesta.ok) {
-    throw new Error(
-      datos.error || "No se pudieron obtener los datos."
-    );
+  if (error) {
+    throw new Error("No se pudo comprobar la sesión.");
   }
 
+  if (!data.session) {
+    throw new Error("Debes iniciar sesión para continuar.");
+  }
+
+  return data.session.access_token;
+}
+
+export async function obtenerDatos(nombreFuncion) {
+  const token = await obtenerToken(); 
+
+  const respuesta = await fetch(`${API_URL}/${nombreFuncion}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!respuesta.ok) {
+    const errorTexto = await respuesta.text();
+    throw new Error(`Error en el servidor (${respuesta.status}): ${errorTexto}`);
+  }
+
+  const datos = await respuesta.json();
   return datos;
 }
 
 export async function enviarDatos(nombreFuncion, datos) {
-  const respuesta = await fetch(
-    `${API_URL}/${nombreFuncion}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(datos)
-    }
-  );
+  const token = await obtenerToken();
 
-  const resultado = await respuesta.json();
+  const respuesta = await fetch(`${API_URL}/${nombreFuncion}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(datos)
+  });
 
   if (!respuesta.ok) {
-    throw new Error(
-      resultado.error || "No se pudieron guardar los datos."
-    );
+    const errorTexto = await respuesta.text();
+    throw new Error(`Error al guardar (${respuesta.status}): ${errorTexto}`);
   }
 
+  const resultado = await respuesta.json();
   return resultado;
 }
