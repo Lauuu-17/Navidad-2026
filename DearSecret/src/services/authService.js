@@ -1,7 +1,7 @@
 import supabaseCliente from "./supabaseCliente";
 
 export async function iniciarSesion(username, contraseña) {
-  const correoSimulado = `${username.trim().toLowerCase()}@dearsecret.local`;
+  const correoSimulado = `${username.trim().toLowerCase()}@dearsecret.com`;
 
   const { data, error } = await supabaseCliente.auth.signInWithPassword({
     email: correoSimulado,

@@ -31,9 +31,9 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
     try {
       setGuardando(true);
         const { data: authData, error: authError } = await supabaseCliente.auth.signUp({
-        email: `${usuario.trim().toLowerCase()}@dearsecret.local`,
+        email: `${usuario.trim().toLowerCase()}@dearsecret.com`,
         password: contrasena
-      });
+      });;
 
       if (authError) throw authError;
 
