@@ -30,31 +30,38 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
 
     try {
       setGuardando(true);
-        const { data: authData, error: authError } = await supabaseCliente.auth.signUp({
+      
+      const { data: authData, error: authError } = await supabaseCliente.auth.signUp({
         email: `${usuario.trim().toLowerCase()}@dearsecret.com`,
         password: contrasena
-      });;
+      });
 
       if (authError) throw authError;
 
-      const nuevoUsuario = await enviarDatos("usuarios", {
-        id: authData.user.id,
-        nombre: nombre.trim(),
-        username: usuario.trim().toLowerCase(),
-        rol: "participante",
-        eventoId: eventoId === "" ? null : eventoId
-      });
+      const { data: nuevoUsuario, error: dbError } = await supabaseCliente
+        .from("usuarios")
+        .insert([{
+          id: authData.user.id,
+          nombre: nombre.trim(),
+          username: usuario.trim().toLowerCase(),
+          rol: "participante",
+          evento_id: eventoId === "" ? null : eventoId 
+        }])
+        .select()
+        .single();
+
+      if (dbError) throw dbError;
 
       const usuarioConvertido = {
         id: nuevoUsuario.id,
         nombre: nuevoUsuario.nombre,
         usuario: nuevoUsuario.username,
         rol: nuevoUsuario.rol,
-        eventoId: nuevoUsuario.eventoId || ""
+        eventoId: nuevoUsuario.evento_id || ""
       };
 
       setUsuarios((anteriores) => [...anteriores, usuarioConvertido]);
-      alert("Usuario registrado correctamente en el sistema.");
+      alert("¡Usuario registrado con éxito en la base de datos!");
 
       setNombre("");
       setUsuario("");
@@ -63,7 +70,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       setMostrarFormulario(false);
 
     } catch (error) {
-      alert("No se pudo registrar en la base de datos: " + error.message);
+      alert("No se pudo registrar el usuario: " + error.message);
     } finally {
       setGuardando(false);
     }
