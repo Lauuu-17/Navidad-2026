@@ -42,10 +42,10 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
         .from("usuarios")
         .insert([{
           id: authData.user.id,
+          auth_user_id: authData.user.id,
           nombre: nombre.trim(),
           username: usuario.trim().toLowerCase(),
-          rol: "participante",
-          evento_id: eventoId === "" ? null : eventoId 
+          rol: "participante"
         }])
         .select()
         .single();
@@ -57,11 +57,11 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
         nombre: nuevoUsuario.nombre,
         usuario: nuevoUsuario.username,
         rol: nuevoUsuario.rol,
-        eventoId: nuevoUsuario.evento_id || ""
+        eventoId: ""
       };
 
       setUsuarios((anteriores) => [...anteriores, usuarioConvertido]);
-      alert("¡Usuario registrado con éxito en la base de datos!");
+      alert("¡Usuario registrado con éxito!");
 
       setNombre("");
       setUsuario("");
