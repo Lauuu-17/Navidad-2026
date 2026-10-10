@@ -152,7 +152,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
               required
             />
 
-            <label>Contraseña inicial (temporal)</label>
+            <label>Contraseña de acceso</label>
             <input
               type="password"
               value={contrasena}
