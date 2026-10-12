@@ -88,11 +88,14 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       await enviarDatos("usuarios", {
         id: idUsuario,
         nombre: participanteActual.nombre,
-        username: participanteActual.usuario,
+        username: participanteActual.usuario, 
         rol: participanteActual.rol || "participante",
+        
+        evento_id: nuevoEventoId === "" ? null : nuevoEventoId,
         eventoId: nuevoEventoId === "" ? null : nuevoEventoId
       });
 
+      // Actualización del estado local de React
       const usuariosActualizados = usuarios.map((persona) => {
         if (persona.id === idUsuario) {
           return {
@@ -110,6 +113,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       alert("No se pudo guardar la participación en el servidor: " + error.message);
     }
   }
+
 
 
 
