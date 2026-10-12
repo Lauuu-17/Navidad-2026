@@ -85,23 +85,15 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
     }
 
     try {
-      const token = localStorage.getItem("sb-access-token") || ""; 
-      const respuesta = await fetch("/api/usuarios", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
-        },
-        body: JSON.stringify({
-          id: idUsuario,
-          eventoId: nuevoEventoId === "" ? null : nuevoEventoId
-        })
+      await enviarDatos("usuarios", {
+        id: idUsuario,
+        nombre: participanteActual.nombre,
+        usuario: participanteActual.usuario, 
+        username: participanteActual.usuario,
+        rol: participanteActual.rol || "participante",
+        eventoId: nuevoEventoId === "" ? null : nuevoEventoId,
+        evento_id: nuevoEventoId === "" ? null : nuevoEventoId
       });
-
-      if (!respuesta.ok) {
-        const errorData = await respuesta.json();
-        throw new Error(errorData.error || "Error en el servidor");
-      }
 
       const usuariosActualizados = usuarios.map((persona) => {
         if (persona.id === idUsuario) {
@@ -120,6 +112,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       alert("No se pudo guardar la participación en el servidor: " + error.message);
     }
   }
+
 
 
 
