@@ -222,7 +222,16 @@ function App() {
     setRol("");
     setUsuarioLogueado(null);
     setPantalla("login");
+    if (comprobandoSesion) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <p style={{ fontSize: "16px", color: "#666" }}>Cargando sesión segura...</p>
+      </div>
+    );
   }
+  }
+
+  
 
   return (
     <div className="app">
