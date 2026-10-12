@@ -8,7 +8,8 @@ import Reglas from "./pages/Reglas";
 import MiAmigoSecreto from "./pages/MiAmigoSecreto";
 import ReglasAdmin from "./pages/ReglasAdmin";
 import { obtenerDatos } from "./services/api";
-import { iniciarSesion as autenticarUsuario, cerrarSesion as cerrarSesionSupabase } from "./services/authService";
+import { iniciarSesion as autenticarUsuario, cerrarSesion as cerrarSesionSupabase, recuperarSesionPersistente  } from "./services/authService";
+import supabaseCliente from "./services/supabaseCliente"
 
 function App() {
   const [usuario, setUsuario] = useState(""); 
@@ -19,6 +20,8 @@ function App() {
   const [errorLogin, setErrorLogin] = useState("");
   const [cargandoLogin, setCargandoLogin] = useState(false);
   const [usuarios, setUsuarios] = useState([]);
+  const [comprobandoSesion, setComprobandoSesion] = useState(true);
+
 
   const [eventos, setEventos] = useState([
     {
@@ -118,10 +121,55 @@ function App() {
   }
 
   useEffect(() => {
-    cargarEventos();
-    cargarUsuarios();
-    cargarReglas();
+    async function verificarPersistencia() {
+      try {
+        const { data: { session }, error: errorSesion } = await supabaseCliente.auth.getSession();
+        
+        if (session && session.user) {
+          const { data: perfil, error: errorPerfil } = await supabaseCliente
+            .from("usuarios")
+            .select("rol, nombre, username")
+            .eq("auth_user_id", session.user.id)
+            .single(); // Trae un solo objeto
+
+          if (errorPerfil) throw errorPerfil;
+
+          if (perfil) {
+            const usuarioActual = {
+              id: session.user.id,
+              nombre: perfil.nombre,
+              usuario: perfil.username,
+              rol: perfil.rol,
+              eventoId: ""
+            };
+
+            setUsuarioLogueado(usuarioActual);
+            setRol(perfil.rol);
+            setPantalla(perfil.rol === "admin" ? "admin" : "participante");
+          }
+        } else {
+          setPantalla("login");
+        }
+      } catch (e) {
+        console.error("Error al recuperar sesión persistente desde la DB:", e);
+        setPantalla("login");
+      } finally {
+        setComprobandoSesion(false);
+      }
+    }
+
+    verificarPersistencia();
   }, []);
+
+  useEffect(() => {
+    if (rol === "admin") {
+      cargarEventos();
+      cargarUsuarios();
+      cargarReglas();
+    } else if (rol === "participante") {
+      cargarEventos(); 
+    }
+  }, [rol]);
 
   async function iniciarSesion(e) {
     e.preventDefault();

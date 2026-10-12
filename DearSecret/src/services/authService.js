@@ -1,5 +1,6 @@
 import supabaseCliente from "./supabaseCliente";
 
+
 export async function iniciarSesion(username, contraseña) {
   const correoSimulado = `${username.trim().toLowerCase()}@dearsecret.com`;
 
@@ -46,4 +47,34 @@ export async function cerrarSesion() {
   if (error) {
     throw error;
   }
+}
+export async function recuperarSesionPersistente() {
+  const { data: { session }, error: errorSesion } = await supabaseCliente.auth.getSession();
+
+  if (errorSesion || !session || !session.user) {
+    return null;
+  }
+
+  const { data: perfil, error: errorPerfil } = await supabaseCliente
+    .from("usuarios")
+    .select("id, nombre, username, rol, auth_user_id")
+    .eq("auth_user_id", session.user.id)
+    .maybeSingle();
+
+  if (errorPerfil || !perfil) {
+    return null; 
+  }
+
+  try {
+    const { data: parts } = await supabaseCliente
+      .from("participaciones")
+      .select("evento_id, estado")
+      .eq("usuario_id", perfil.id);
+
+    perfil.participaciones = parts || [];
+  } catch (err) {
+    perfil.participaciones = [];
+  }
+
+  return perfil;
 }
