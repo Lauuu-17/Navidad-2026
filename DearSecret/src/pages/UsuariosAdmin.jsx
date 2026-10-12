@@ -85,17 +85,24 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
     }
 
     try {
-      await enviarDatos("usuarios", {
-        id: idUsuario,
-        nombre: participanteActual.nombre,
-        username: participanteActual.usuario, 
-        rol: participanteActual.rol || "participante",
-        
-        evento_id: nuevoEventoId === "" ? null : nuevoEventoId,
-        eventoId: nuevoEventoId === "" ? null : nuevoEventoId
+      const token = localStorage.getItem("sb-access-token") || ""; 
+      const respuesta = await fetch("/api/usuarios", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          id: idUsuario,
+          eventoId: nuevoEventoId === "" ? null : nuevoEventoId
+        })
       });
 
-      // Actualización del estado local de React
+      if (!respuesta.ok) {
+        const errorData = await respuesta.json();
+        throw new Error(errorData.error || "Error en el servidor");
+      }
+
       const usuariosActualizados = usuarios.map((persona) => {
         if (persona.id === idUsuario) {
           return {
