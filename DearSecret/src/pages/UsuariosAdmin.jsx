@@ -106,7 +106,6 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
       });
 
       setUsuarios(usuariosActualizados);
-      alert("Asignación de participante guardada de forma permanente.");
 
     } catch (error) {
       alert("No se pudo guardar la participación en el servidor: " + error.message);
