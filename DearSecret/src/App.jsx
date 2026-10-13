@@ -76,9 +76,8 @@ async function cargarUsuarios() {
     const usuariosConvertidos = datos.map((u) => {
       let evId = "";
       
-      // Ajuste para leer la estructura exacta que devuelve tu endpoint GET de usuarios
       if (u.eventos && Array.isArray(u.eventos) && u.eventos.length > 0) {
-        evId = u.eventos[0].eventoId; // Tu backend mapea el campo como 'eventoId' en la respuesta GET
+        evId = u.eventos[0].eventoId;
       } else if (u.participaciones && u.participaciones.length > 0) {
         evId = u.participaciones[0].evento_id;
       }
@@ -88,7 +87,7 @@ async function cargarUsuarios() {
         nombre: u.nombre,
         usuario: u.username || u.usuario || "", 
         rol: u.rol || "participante",
-        eventoId: evId // Esto garantiza que el selector lo reconozca
+        eventoId: evId 
       };
     });
 
