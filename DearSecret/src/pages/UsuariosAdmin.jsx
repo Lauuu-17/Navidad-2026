@@ -87,6 +87,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
     try {
       await enviarDatos("usuarios", {
         id: idUsuario,
+        usuarioId: idUsuario, 
         nombre: participanteActual.nombre,
         usuario: participanteActual.usuario, 
         username: participanteActual.usuario,
@@ -99,21 +100,19 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
         if (persona.id === idUsuario) {
           return {
             ...persona,
-            eventoId: nuevoEventoId === "" ? null : nuevoEventoId
+            eventoId: nuevoEventoId === "" ? null : nuevoEventoId 
           };
         }
         return persona;
       });
 
       setUsuarios(usuariosActualizados);
+      alert("Asignación de participante guardada de forma permanente.");
 
     } catch (error) {
       alert("No se pudo guardar la participación en el servidor: " + error.message);
     }
   }
-
-
-
 
 
 

@@ -58,24 +58,33 @@ export default async (request, context) => {
     );
   }
 
-    if (metodo === "POST") {
+  if (metodo === "POST") {
     try {
       const datos = await request.json();
-      const usuarioId = datos.id;
+      
+      const usuarioId = datos.id || datos.usuarioId; 
       const usuarioNombre = datos.nombre;
       const usuarioLogin = datos.usuario || datos.username; 
       const destinoEventoId = datos.eventoId || datos.evento_id;
 
       if (usuarioId) {
-        await supabase
+        const { error: errorBorrado } = await supabase
           .from("participaciones")
           .delete()
           .eq("usuario_id", usuarioId);
 
+        if (errorBorrado) throw errorBorrado;
+
         if (destinoEventoId) {
           const { error: errorInsertParticipacion } = await supabase
             .from("participaciones")
-            .insert([{ usuario_id: usuarioId, evento_id: destinoEventoId, estado: "activo" }]);
+            .insert([
+              { 
+                usuario_id: usuarioId, 
+                evento_id: destinoEventoId,
+                estado: "activo" 
+              }
+            ]);
 
           if (errorInsertParticipacion) {
             return new Response(JSON.stringify({ error: errorInsertParticipacion.message }), {
@@ -86,7 +95,7 @@ export default async (request, context) => {
         }
 
         return new Response(
-          JSON.stringify({ mensaje: "Asignación de evento actualizada con éxito via POST.", eventoId: destinoEventoId || null }),
+          JSON.stringify({ mensaje: "Asignación actualizada con éxito en la tabla participaciones.", eventoId: destinoEventoId || null }),
           { status: 200, headers: { "Content-Type": "application/json" } }
         );
       }
@@ -118,7 +127,6 @@ export default async (request, context) => {
         });
       }
 
-      // Insertar nuevo usuario en la base de datos
       const { data: nuevoUsuario, error: errorUsuario } = await supabase
         .from("usuarios")
         .insert([{ nombre: usuarioNombre, username: usuarioLogin, rol: "participante" }])
