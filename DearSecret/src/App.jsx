@@ -66,40 +66,41 @@ function App() {
     }
   }
 
-  async function cargarUsuarios() {
-    try {
-      setCargandoUsuarios(true);
-      setErrorUsuarios("");
+async function cargarUsuarios() {
+  try {
+    setCargandoUsuarios(true);
+    setErrorUsuarios("");
 
-      const datos = await obtenerDatos("usuarios");
+    const datos = await obtenerDatos("usuarios");
 
-      const usuariosConvertidos = datos.map((u) => {
-        let evId = "";
-        if (u.participaciones && u.participaciones.length > 0) {
-          evId = u.participaciones[0].evento_id;
-        } else if (u.evento_id) {
-          evId = u.evento_id;
-        } else if (u.eventos) {
-          evId = Array.isArray(u.eventos) && u.eventos.length > 0 ? u.eventos[0].id : (u.eventos.id || "");
-        }
+    const usuariosConvertidos = datos.map((u) => {
+      let evId = "";
+      
+      // Ajuste para leer la estructura exacta que devuelve tu endpoint GET de usuarios
+      if (u.eventos && Array.isArray(u.eventos) && u.eventos.length > 0) {
+        evId = u.eventos[0].eventoId; // Tu backend mapea el campo como 'eventoId' en la respuesta GET
+      } else if (u.participaciones && u.participaciones.length > 0) {
+        evId = u.participaciones[0].evento_id;
+      }
 
-        return {
-          id: u.id,
-          nombre: u.nombre,
-          usuario: u.username || u.usuario || "", 
-          rol: u.rol || "participante",
-          eventoId: evId
-        };
-      });
+      return {
+        id: u.id,
+        nombre: u.nombre,
+        usuario: u.username || u.usuario || "", 
+        rol: u.rol || "participante",
+        eventoId: evId // Esto garantiza que el selector lo reconozca
+      };
+    });
 
-      setUsuarios(usuariosConvertidos);
-    } catch (error) {
-      console.error("Error en cargarUsuarios:", error);
-      setErrorUsuarios(error.message);
-    } finally {
-      setCargandoUsuarios(false);
-    }
+    setUsuarios(usuariosConvertidos);
+  } catch (error) {
+    console.error("Error en cargarUsuarios:", error);
+    setErrorUsuarios(error.message);
+  } finally {
+    setCargandoUsuarios(false);
   }
+}
+
 
   async function cargarReglas() {
     try {
@@ -130,7 +131,7 @@ function App() {
             .from("usuarios")
             .select("rol, nombre, username")
             .eq("auth_user_id", session.user.id)
-            .single(); // Trae un solo objeto
+            .single();
 
           if (errorPerfil) throw errorPerfil;
 

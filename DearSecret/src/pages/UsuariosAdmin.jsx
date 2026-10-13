@@ -77,42 +77,42 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
   }
 
   async function asignarEvento(idUsuario, nuevoEventoId) {
-    const participanteActual = usuarios.find((u) => String(u.id) === String(idUsuario));
+  const participanteActual = usuarios.find((u) => String(u.id) === String(idUsuario));
 
-    if (!participanteActual) {
-      alert("No se encontró el participante localmente.");
-      return;
-    }
-
-    try {
-      await enviarDatos("usuarios", {
-        id: idUsuario,
-        usuarioId: idUsuario, 
-        nombre: participanteActual.nombre,
-        usuario: participanteActual.usuario, 
-        username: participanteActual.usuario,
-        rol: participanteActual.rol || "participante",
-        eventoId: nuevoEventoId === "" ? null : nuevoEventoId,
-        evento_id: nuevoEventoId === "" ? null : nuevoEventoId
-      });
-
-      const usuariosActualizados = usuarios.map((persona) => {
-        if (persona.id === idUsuario) {
-          return {
-            ...persona,
-            eventoId: nuevoEventoId === "" ? null : nuevoEventoId 
-          };
-        }
-        return persona;
-      });
-
-      setUsuarios(usuariosActualizados);
-      alert("Asignación de participante guardada de forma permanente.");
-
-    } catch (error) {
-      alert("No se pudo guardar la participación en el servidor: " + error.message);
-    }
+  if (!participanteActual) {
+    alert("No se encontró el participante localmente.");
+    return;
   }
+
+  try {
+    const respuesta = await enviarDatos("usuarios", {
+      id: idUsuario,
+      usuarioId: idUsuario, 
+      nombre: participanteActual.nombre,
+      usuario: participanteActual.usuario, 
+      username: participanteActual.usuario,
+      rol: participanteActual.rol || "participante",
+      eventoId: nuevoEventoId === "" ? null : nuevoEventoId,
+      evento_id: nuevoEventoId === "" ? null : nuevoEventoId
+    });
+
+    const usuariosActualizados = usuarios.map((persona) => {
+      if (persona.id === idUsuario) {
+        return {
+          ...persona,
+          eventoId: nuevoEventoId === "" ? "" : nuevoEventoId
+        };
+      }
+      return persona;
+    });
+
+    setUsuarios(usuariosActualizados);
+    alert("Asignación de participante guardada de forma permanente.");
+
+  } catch (error) {
+    alert("No se pudo guardar la participación en el servidor: " + error.message);
+  }
+}
 
 
 
