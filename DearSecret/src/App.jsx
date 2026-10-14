@@ -100,7 +100,6 @@ async function cargarUsuarios() {
   }
 }
 
-
   async function cargarReglas() {
     try {
       setCargandoReglas(true);
@@ -157,7 +156,6 @@ async function cargarUsuarios() {
         setComprobandoSesion(false);
       }
     }
-
     verificarPersistencia();
   }, []);
 
@@ -276,7 +274,7 @@ async function cargarUsuarios() {
       {pantalla === "admin" && (
         <div className="dashboard-theme">
           <header className="encabezado">
-            <h2>🎁 Ángel Secreto</h2>
+            <h2>Todo esta en tus manos</h2>
             <button onClick={cerrarSesion} className="boton-secundario">
               Cerrar sesión
             </button>
@@ -284,7 +282,7 @@ async function cargarUsuarios() {
 
           <div className="contenido">
             <h1>Panel de administración</h1>
-            <p>Bienvenida, ingeniera.</p>
+            <p>Bienvenida Grinch</p>
 
             <div className="tarjetas">
               <div className="tarjeta">
@@ -305,7 +303,7 @@ async function cargarUsuarios() {
 
               <div className="tarjeta">
                 <h3>🎲 Control de sorteo</h3>
-                <p>Revisa participantes, reglas y asignaciones.</p>
+                <p>Revisa participantes, reglas y asignaciones</p>
                 <button onClick={() => setPantalla("sorteo")} className="boton-dashboard">
                   Abrir control
                 </button>
@@ -322,7 +320,7 @@ async function cargarUsuarios() {
       {pantalla === "participante" && (
         <div className="dashboard-theme">
           <header className="encabezado">
-            <h2>🎁 Persona a par</h2>
+            <h2>Pasando Navidad desde 2016 🌟</h2>
             <button onClick={cerrarSesion} className="boton-secundario">
               Cerrar sesión
             </button>
@@ -330,31 +328,30 @@ async function cargarUsuarios() {
 
           <div className="contenido">
             <div className="bienvenida">
-              <span>Tu aventura comienza aquí</span>
-              <h1>¡Bienvenido, {usuarioLogueado?.nombre || "Participante"}!</h1>
-              <p>Mensaje de bienvenida mas cosas</p>
+              <span>Listo para el</span>
+              <h1>Merequetengue Navideño, {usuarioLogueado?.nombre || "Participante"}!</h1>
+              <p>Recuerda que nuestro mejor regalo es pasarla juntos</p>
             </div>
 
             <div className="tarjetas">
               <div className="tarjeta">
                 <h3>🎁 Mi amigo secreto</h3>
-                <p>Cuando el evento inicie podrás ver a tu par.</p>
+                <p>Cuando el evento inicie podrás ver quien es tu amigo secreto</p>
                 <button onClick={() => setPantalla("revelacion")} className="boton-dashboard">
                   Ver mi amigo secreto
                 </button>
               </div>
 
               <div className="tarjeta">
-                <h3>💝 Mi Wishlist</h3>
-                <p>Comienza con tu carta a santa</p>
+                <h3>Wishlist 🪄</h3>
+                <p>Comienza con tu carta a Santa</p>
                 <button onClick={() => setPantalla("wishlist")} className="boton-dashboard">
-                  Editar wishlist
+                  Editar Wishlist
                 </button>
               </div>
 
               <div className="tarjeta">
                 <h3>📜 Reglas del evento</h3>
-                <p>Reglas para el juego.</p>
                 <button onClick={() => setPantalla("reglas")} className="boton-dashboard">
                   Ver reglas
                 </button>
