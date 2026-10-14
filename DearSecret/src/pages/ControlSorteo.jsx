@@ -36,6 +36,12 @@ function ControlSorteo({ usuarios, eventos, volver }) {
   }, []);
 
   function sincronizarEstadoConDB(idDelEvento, listaSorteos) {
+    if (!listaSorteos || listaSorteos.length === 0) {
+      setEstadoSorteo("No iniciado");
+      setAsignadosIds([]);
+      return;
+    }
+
     const sorteoExistente = listaSorteos.find(
       (s) => String(s.evento_id) === String(idDelEvento)
     );
@@ -56,6 +62,7 @@ function ControlSorteo({ usuarios, eventos, volver }) {
       setAsignadosIds([]);
     }
   }
+
 
   async function crearSorteo() {
     if (!eventoId) {
