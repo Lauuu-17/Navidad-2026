@@ -1,13 +1,12 @@
-# node_modules y dist corregidos con la barra diagonal
 node_modules/
 dist/
 dist-ssr
 *.local
 
-# Local Netlify folder
 .netlify/
 
-# Seguridad total para archivos de entorno
 .env
 .env.*
 !.env.example
+
+.netlify

@@ -1,0 +1,20 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Arequipa",
+			"country": {
+				"code": "PE",
+				"name": "Peru"
+			},
+			"subdivision": {
+				"code": "ARE",
+				"name": "Arequipa"
+			},
+			"timezone": "America/Lima",
+			"latitude": -16.4014,
+			"longitude": -71.5343
+		},
+		"timestamp": 1791496446656
+	},
+	"dbConnectionString": "postgres://postgres@localhost:62828/postgres"
+}
