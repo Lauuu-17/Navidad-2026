@@ -84,6 +84,37 @@ button, input, textarea {
   border-color: #ffffff;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
+.input-contrasena-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Espacio extra a la derecha del input para que el texto no tape el ojo */
+.login-card .input-contrasena-container input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+/* Botón interactivo para alternar visibilidad */
+.boton-mostrar-ocultar {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
+}
+
+.boton-mostrar-ocultar:hover {
+  transform: scale(1.1);
+}
 
 /* Botón estilo píldora exclusivo para el Login */
 .boton-login {
