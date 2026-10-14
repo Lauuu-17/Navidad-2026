@@ -2,32 +2,39 @@ import { useEffect, useState } from "react";
 import { obtenerDatos, enviarDatos } from "../services/api";
 
 function Wishlist({ usuarioId, eventoId, volver }) {
-  const [wishlist, setWishlist] = useState({
-    regalo: "",
-    caricatura: "",
-    enlace: "",
-    descripcion: ""
-  });
+  const [regalosList, setRegalosList] = useState([]);
+  const [caricaturasList, setCaricaturasList] = useState([]);
+  
+  const [inputRegalo, setInputRegalo] = useState("");
+  const [inputCaricatura, setInputCaricatura] = useState("");
+  const [inputEnlace, setInputEnlace] = useState("");
+  const [inputDescripcion, setInputDescripcion] = useState("");
+
   const [guardando, setGuardando] = useState(false);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
 
-  // Cargar datos al montar el componente
   async function cargarWishlistExistente() {
     if (!eventoId) return;
 
     try {
       setCargandoHistorial(true);
-      const datos = await obtenerDatos(
-        `wishlist?eventoId=${encodeURIComponent(eventoId)}`
-      );
+      const datos = await obtenerDatos(`wishlist?eventoId=${encodeURIComponent(eventoId)}`);
 
       if (datos) {
-        setWishlist({
-          regalo: datos.regalo || "",
-          caricatura: datos.caricatura || "",
-          enlace: datos.enlace || "",
-          descripcion: datos.descripcion || ""
-        });
+        try {
+          setRegalosList(datos.regalo ? JSON.parse(datos.regalo) : []);
+        } catch {
+          setRegalosList(datos.regalo ? [datos.regalo] : []);
+        }
+
+        try {
+          setCaricaturasList(datos.caricatura ? JSON.parse(datos.caricatura) : []);
+        } catch {
+          setCaricaturasList(datos.caricatura ? [datos.caricatura] : []);
+        }
+
+        setInputEnlace(datos.enlace || "");
+        setInputDescripcion(datos.descripcion || "");
       }
     } catch (error) {
       console.log("Sin registro previo en la base de datos:", error.message);
@@ -40,70 +47,60 @@ function Wishlist({ usuarioId, eventoId, volver }) {
     cargarWishlistExistente();
   }, [eventoId]);
 
-  function cambiarDato(e) {
-    setWishlist({
-      ...wishlist,
-      [e.target.name]: e.target.value
-    });
-  }
-
-  // Guardar la Wishlist completa
-  async function guardarWishlist(e) {
-    if (e) e.preventDefault();
-
-    if (!eventoId) {
-      alert("No puedes modificar tu lista de deseos porque no estás vinculado a ningún evento activo.");
-      return;
-    }
-
+  async function sincronizarConBackend(nuevaListaRegalos, nuevaListaCaricaturas, enlaceActual, descActual) {
+    if (!eventoId) return;
     try {
       setGuardando(true);
       await enviarDatos("wishlist", {
         eventoId: eventoId,
-        regalo: wishlist.regalo,
-        caricatura: wishlist.caricatura,
-        enlace: wishlist.enlace,
-        descripcion: wishlist.descripcion
+        regalo: JSON.stringify(nuevaListaRegalos),
+        caricatura: JSON.stringify(nuevaListaCaricaturas),
+        enlace: enlaceActual,
+        descripcion: descActual
       });
-      alert("Lista de deseos guardada correctamente.");
     } catch (error) {
-      alert("No se pudo guardar la lista: " + error.message);
+      alert("Error al sincronizar con el servidor: " + error.message);
     } finally {
       setGuardando(false);
     }
   }
 
-  // Función estrella: Borrar un ítem individualmente en el servidor
-  async function borrarItemIndividual(campo) {
-    const confirmacion = window.confirm(`¿Estás seguro de que deseas limpiar este campo?`);
-    if (!confirmacion) return;
+  async function agregarRegalo(e) {
+    e.preventDefault();
+    if (!inputRegalo.trim()) return;
+    
+    const actualizada = [...regalosList, inputRegalo.trim()];
+    setRegalosList(actualizada);
+    setInputRegalo("");
+    await sincronizarConBackend(actualizada, caricaturasList, inputEnlace, inputDescripcion);
+  }
 
-    try {
-      setGuardando(true);
-      
-      // 1. Clonamos el estado actual y vaciamos el campo seleccionado
-      const wishlistActualizada = {
-        ...wishlist,
-        [campo]: ""
-      };
+  async function agregarCaricatura(e) {
+    e.preventDefault();
+    if (!inputCaricatura.trim()) return;
 
-      // 2. Persistimos el cambio de inmediato en Supabase enviando la cadena limpia
-      await enviarDatos("wishlist", {
-        eventoId: eventoId,
-        regalo: wishlistActualizada.regalo,
-        caricatura: wishlistActualizada.caricatura,
-        enlace: wishlistActualizada.enlace,
-        descripcion: wishlistActualizada.descripcion
-      });
+    const actualizada = [...caricaturasList, inputCaricatura.trim()];
+    setCaricaturasList(actualizada);
+    setInputCaricatura("");
+    await sincronizarConBackend(regalosList, actualizada, inputEnlace, inputDescripcion);
+  }
 
-      // 3. Sincronizamos la UI local
-      setWishlist(wishlistActualizada);
-      alert("Campo removido con éxito.");
-    } catch (error) {
-      alert("No se pudo eliminar el ítem: " + error.message);
-    } finally {
-      setGuardando(false);
-    }
+  async function actualizarCamposTexto(e) {
+    e.preventDefault();
+    await sincronizarConBackend(regalosList, caricaturasList, inputEnlace, inputDescripcion);
+    alert("Enlace y descripción actualizados con éxito.");
+  }
+
+  async function eliminarRegaloItem(indexAEliminar) {
+    const actualizada = regalosList.filter((_, index) => index !== indexAEliminar);
+    setRegalosList(actualizada);
+    await sincronizarConBackend(actualizada, caricaturasList, inputEnlace, inputDescripcion);
+  }
+
+  async function eliminarCaricaturaItem(indexAEliminar) {
+    const actualizada = caricaturasList.filter((_, index) => index !== indexAEliminar);
+    setCaricaturasList(actualizada);
+    await sincronizarConBackend(regalosList, actualizada, inputEnlace, inputDescripcion);
   }
 
   return (
@@ -114,8 +111,8 @@ function Wishlist({ usuarioId, eventoId, volver }) {
 
       <div className="titulo-seccion">
         <div>
-          <h1>💝 Mi Wishlist</h1>
-          <p>Cuéntale a tu amigo secreto qué cosas te gustan.</p>
+          <h1>💝 Mi Wishlist Dinámica</h1>
+          <p>Añade múltiples opciones y administra tus gustos individualmente.</p>
         </div>
       </div>
 
@@ -124,132 +121,117 @@ function Wishlist({ usuarioId, eventoId, volver }) {
       ) : (
         <div className="wishlist-layout">
           
-          {/* COLUMNA IZQUIERDA: FORMULARIO */}
           <div className="wishlist-form" style={{ maxWidth: "100%", marginBottom: 0 }}>
-            <form onSubmit={guardarWishlist}>
+            
+            <div style={{ marginBottom: "20px" }}>
               <label>¿Qué tipo de regalo te gustaría recibir?</label>
-              <input
-                name="regalo"
-                placeholder="Ej. ropa, libros..."
-                value={wishlist.regalo}
-                onChange={cambiarDato}
-                disabled={!eventoId}
-              />
+              <div className="formulario-linea-input">
+                <input
+                  placeholder="Ej. Ropa, libros, tazas..."
+                  value={inputRegalo}
+                  onChange={(e) => setInputRegalo(e.target.value)}
+                  disabled={!eventoId || guardando}
+                />
+                <button type="button" className="boton-agregar-inline" onClick={agregarRegalo} disabled={guardando}>
+                  + Añadir
+                </button>
+              </div>
+            </div>
 
-              <label>Caricatura, personaje o serie favorita</label>
-              <input
-                name="caricatura"
-                placeholder="Ej. Spider-Man"
-                value={wishlist.caricatura}
-                onChange={cambiarDato}
-                disabled={!eventoId}
-              />
+            <div style={{ marginBottom: "20px" }}>
+              <label>Caricaturas, personajes o series favoritas</label>
+              <div className="formulario-linea-input">
+                <input
+                  placeholder="Ej. Spider-Man, Harry Potter..."
+                  value={inputCaricatura}
+                  onChange={(e) => setInputCaricatura(e.target.value)}
+                  disabled={!eventoId || guardando}
+                />
+                <button type="button" className="boton-agregar-inline" onClick={agregarCaricatura} disabled={guardando}>
+                  + Añadir
+                </button>
+              </div>
+            </div>
 
-              <label>Link de algún producto</label>
+            <form onSubmit={actualizarCamposTexto}>
+              <label>Link de algún producto específico</label>
               <input
-                name="enlace"
                 type="url"
                 placeholder="https://..."
-                value={wishlist.enlace}
-                onChange={cambiarDato}
+                value={inputEnlace}
+                onChange={(e) => setInputEnlace(e.target.value)}
                 disabled={!eventoId}
               />
 
-              <label>Descripción</label>
+              <label>Descripción o notas adicionales</label>
               <textarea
-                name="descripcion"
-                placeholder="Cuéntale algo más a tu amigo secreto..."
-                value={wishlist.descripcion}
-                onChange={cambiarDato}
+                placeholder="Cuéntale detalles sobre tallas o preferencias a tu amigo secreto..."
+                value={inputDescripcion}
+                onChange={(e) => setInputDescripcion(e.target.value)}
                 disabled={!eventoId}
               />
 
               <button type="submit" disabled={!eventoId || guardando}>
-                {!eventoId 
-                  ? "Modo Lectura (Sin evento activo)" 
-                  : guardando 
-                    ? "Guardando..." 
-                    : "Guardar wishlist"}
+                {guardando ? "Guardando..." : "Guardar Enlace y Descripción"}
               </button>
             </form>
           </div>
 
-          {/* COLUMNA DERECHA: REGISTROS ACTUALES (SUBBLOQUES) */}
           <div className="preview-block">
             <h2 style={{ fontSize: "1.15rem", marginBottom: "20px", color: "#655345" }}>
-              📋 Resumen Guardado
+              📋 Resumen de mis Gustos
             </h2>
 
-            {/* Subbloque: Tipo de Regalo */}
-            {wishlist.regalo ? (
-              <div className="preview-subbloque">
-                <h4>Tipo de regalo:</h4>
-                <p>{wishlist.regalo}</p>
-                <button 
-                  className="boton-borrar-item" 
-                  title="Borrar este ítem"
-                  onClick={() => borrarItemIndividual("regalo")}
-                >
-                  🗑️
-                </button>
-              </div>
-            ) : null}
+            <div className="preview-subbloque" style={{ paddingRight: "15px" }}>
+              <h4>🎁 Ideas de Regalos sugeridos:</h4>
+              {regalosList.length === 0 ? (
+                <p style={{ fontStyle: "italic", color: "#a39382", fontSize: "13px" }}>No has agregado opciones de regalos.</p>
+              ) : (
+                <div className="sublista-items">
+                  {regalosList.map((item, index) => (
+                    <div className="item-badge" key={index}>
+                      <span>• {item}</span>
+                      <button className="boton-eliminar-badge" onClick={() => eliminarRegaloItem(index)}>Borrar ✖</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-            {/* Subbloque: Caricatura */}
-            {wishlist.caricatura ? (
-              <div className="preview-subbloque">
-                <h4>Caricatura o Personaje:</h4>
-                <p>{wishlist.caricatura}</p>
-                <button 
-                  className="boton-borrar-item" 
-                  title="Borrar este ítem"
-                  onClick={() => borrarItemIndividual("caricatura")}
-                >
-                  🗑️
-                </button>
-              </div>
-            ) : null}
+            <div className="preview-subbloque" style={{ paddingRight: "15px" }}>
+              <h4>🎬 Series, Caricaturas o Cómics:</h4>
+              {caricaturasList.length === 0 ? (
+                <p style={{ fontStyle: "italic", color: "#a39382", fontSize: "13px" }}>No has agregado personajes.</p>
+              ) : (
+                <div className="sublista-items">
+                  {caricaturasList.map((item, index) => (
+                    <div className="item-badge" key={index}>
+                      <span>⭐ {item}</span>
+                      <button className="boton-eliminar-badge" onClick={() => eliminarCaricaturaItem(index)}>Borrar ✖</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-            {/* Subbloque: Enlace */}
-            {wishlist.enlace ? (
+            {inputEnlace ? (
               <div className="preview-subbloque">
-                <h4>Link de producto:</h4>
+                <h4>🔗 Link de interés:</h4>
                 <p>
-                  <a href={wishlist.enlace} target="_blank" rel="noopener noreferrer" className="preview-enlace">
+                  <a href={inputEnlace} target="_blank" rel="noopener noreferrer" className="preview-enlace">
                     Ver producto sugerido ↗
                   </a>
                 </p>
-                <button 
-                  className="boton-borrar-item" 
-                  title="Borrar este ítem"
-                  onClick={() => borrarItemIndividual("enlace")}
-                >
-                  🗑️
-                </button>
               </div>
             ) : null}
 
-            {/* Subbloque: Descripción */}
-            {wishlist.descripcion ? (
+            {inputDescripcion ? (
               <div className="preview-subbloque">
-                <h4>Descripción adicional:</h4>
-                <p>{wishlist.descripcion}</p>
-                <button 
-                  className="boton-borrar-item" 
-                  title="Borrar este ítem"
-                  onClick={() => borrarItemIndividual("descripcion")}
-                >
-                  🗑️
-                </button>
+                <h4>📝 Comentarios adicionales:</h4>
+                <p style={{ whiteSpace: "pre-line" }}>{inputDescripcion}</p>
               </div>
             ) : null}
 
-            {/* Estado vacío por si el usuario no tiene nada escrito */}
-            {!wishlist.regalo && !wishlist.caricatura && !wishlist.enlace && !wishlist.descripcion && (
-              <p style={{ color: "#a39382", textAlign: "center", fontStyle: "italic", padding: "20px 0" }}>
-                Tu Wishlist está vacía. Completa el formulario de la izquierda para agregar tus gustos.
-              </p>
-            )}
           </div>
 
         </div>
