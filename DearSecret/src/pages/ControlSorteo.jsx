@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { obtenerDatos, enviarDatos } from "../services/api";
+import { obtenerDatos, enviarDatos, eliminarDatos } from "../services/api";
 
 function ControlSorteo({ usuarios, eventos, volver }) {
   const [eventoId, setEventoId] = useState(
