@@ -13,7 +13,46 @@ export default async (request, context) => {
   if (acceso.error) return acceso.error;
 
   const metodo = request.method;
+  
+  if (metodo !== "GET" && metodo !== "POST" && metodo !== "DELETE") {
+    return responder({ error: "Método no permitido." }, 405);
+  }
+  if (metodo === "DELETE") {
+    let cuerpo;
+    try { cuerpo = await request.json(); } catch { return responder({ error: "JSON no válido." }, 400); }
 
+    const { eventoId } = cuerpo;
+    if (!eventoId) return responder({ error: "Debes indicar el evento a reiniciar." }, 400);
+
+    // 1. Buscar si hay algún sorteo ligado a ese evento
+    const { data: sorteo, error: errorBusqueda } = await supabase
+      .from("sorteos")
+      .select("id")
+      .eq("evento_id", eventoId)
+      .maybeSingle();
+
+    if (errorBusqueda) return responder({ error: "Error al buscar el sorteo." }, 500);
+    
+    if (!sorteo) {
+      return responder({ mensaje: "No hay ningún sorteo activo que requiera ser eliminado." }, 200);
+    }
+
+    const { error: errorAsignaciones } = await supabase
+      .from("asignaciones")
+      .delete()
+      .eq("sorteo_id", sorteo.id);
+
+    if (errorAsignaciones) return responder({ error: "No se pudieron limpiar las asignaciones viejas." }, 500);
+
+    const { error: errorSorteo } = await supabase
+      .from("sorteos")
+      .delete()
+      .eq("id", sorteo.id);
+
+    if (errorSorteo) return responder({ error: "No se pudo eliminar el sorteo principal." }, 500);
+
+    return responder({ mensaje: "El sorteo y sus emparejamientos fueron eliminados con éxito de Supabase." }, 200);
+  }
   if (metodo === "GET") {
     const { data, error } = await supabase
       .from("sorteos")
@@ -85,8 +124,7 @@ export default async (request, context) => {
       let mapeoTemporal = [];
       let esValido = true;
 
-      // Aplicar primero parejas manuales si existen
-      if (reglas) {
+        if (reglas) {
         const manuales = reglas.filter(r => r.tipo === "manual");
         for (let m of manuales) {
           if (listaIds.includes(m.origen_id) && disponibles.includes(m.destino_id)) {

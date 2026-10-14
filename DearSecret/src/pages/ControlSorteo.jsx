@@ -97,10 +97,33 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     setEstadoSorteo("Pendiente de revisión");
   }
 
-  function reiniciarSorteo() {
-    setAsignadosIds([]);
-    setEstadoSorteo("No iniciado");
+  async function reiniciarSorteo() {
+    if (!eventoId) return;
+
+    const confirmar = window.confirm("¿Estás seguro de que deseas eliminar el sorteo actual de Supabase? Esto borrará todas las parejas asignadas y permitirá crear un sorteo nuevo.");
+    if (!confirmar) return;
+
+    try {
+      setCargandoSorteos(true);
+      
+      await eliminarDatos("sorteo", {
+        eventoId: eventoId
+      });
+
+      setAsignadosIds([]);
+      setEstadoSorteo("No iniciado");
+      
+      const datosActualizados = await obtenerDatos("sorteo");
+      setSorteos(datosActualizados);
+
+      alert("🎉 Base de datos limpia.");
+    } catch (error) {
+      alert("No se pudo reiniciar el sorteo en el servidor: " + error.message);
+    } finally {
+      setCargandoSorteos(false);
+    }
   }
+
 
   async function publicarSorteo() {
     if (!eventoId) return;
