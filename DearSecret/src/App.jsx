@@ -14,6 +14,7 @@ import supabaseCliente from "./services/supabaseCliente"
 function App() {
   const [usuario, setUsuario] = useState(""); 
   const [contrasena, setContrasena] = useState("");
+  const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [pantalla, setPantalla] = useState("login");
   const [rol, setRol] = useState("");
   const [usuarioLogueado, setUsuarioLogueado] = useState(null);
@@ -217,6 +218,7 @@ async function cargarUsuarios() {
     }
     setUsuario("");
     setContrasena("");
+    setMostrarContrasena(false);
     setRol("");
     setUsuarioLogueado(null);
     setPantalla("login");
@@ -251,13 +253,22 @@ async function cargarUsuarios() {
               />
 
               <label>Contraseña</label>
-              <input
-                type="password"
-                placeholder="Ingresa tu contraseña"
-                value={contrasena}
-                onChange={(e) => setContrasena(e.target.value)}
-                required
-              />
+                <div className="input-contrasena-container">
+                <input
+                  type={mostrarContrasena ? "text" : "password"}
+                  placeholder="Ingresa tu contraseña"
+                  value={contrasena}
+                  onChange={(e) => setContrasena(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="boton-mostrar-ocultar"
+                  onClick={() => setMostrarContrasena(!mostrarContrasena)}
+                >
+                  {mostrarContrasena ? "🙈" : "👁️"}
+                </button>
+              </div>
               {errorLogin && (
                 <p style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>
                   ⚠️ {errorLogin}
@@ -364,7 +375,7 @@ async function cargarUsuarios() {
         </div>
       )}
 
-      {/* VISTAS ELEMENTOS HIJOS */}
+      {/* VISTAS ELEMENTOS  */}
       {pantalla === "eventos" && (
         <div className="dashboard-theme">
           <div className="contenido">
