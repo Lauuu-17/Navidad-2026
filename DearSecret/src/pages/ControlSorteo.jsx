@@ -102,9 +102,23 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     setEstadoSorteo("No iniciado");
   }
 
-  function publicarSorteo() {
-    setEstadoSorteo("Publicado");
+  async function publicarSorteo() {
+    if (!eventoId) return;
+
+    try {
+      setCargandoSorteos(true);
+      await enviarDatos("sorteo", {
+        eventoId: eventoId,
+        ejecutarEmparejamiento: true
+      });
+      setEstadoSorteo("Publicado");
+    } catch (error) {
+      alert("Error al procesar el sorteo oficial: " + error.message);
+    } finally {
+      setCargandoSorteos(false);
+    }
   }
+
 
   const eventoActual = eventos.find(
     (evento) => String(evento.id) === String(eventoId)
