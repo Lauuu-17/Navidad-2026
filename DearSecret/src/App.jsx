@@ -136,7 +136,7 @@ async function cargarUsuarios() {
 
           if (perfil) {
             const usuarioActual = {
-              id: session.user.id,
+              id: perfil.id, 
               nombre: perfil.nombre,
               usuario: perfil.username,
               rol: perfil.rol,
