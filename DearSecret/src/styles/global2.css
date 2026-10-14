@@ -867,3 +867,81 @@ button, input, textarea {
     align-items: flex-start;
   }
 }
+/* Layout de dos columnas para la Wishlist */
+.wishlist-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+/* Subbloques del panel de visualización lateral */
+.preview-block {
+  background: var(--bg-card, #fdfaf2);
+  border: 1px solid var(--borde-contenedor, #dfd5c6);
+  border-radius: 4px;
+  padding: 25px;
+  box-shadow: inset 0 0 10px rgba(223, 213, 198, 0.1);
+}
+
+.preview-subbloque {
+  background: #f7f1e4;
+  border: 1px solid var(--borde-contenedor, #dfd5c6);
+  border-radius: 4px;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.preview-subbloque h4 {
+  font-size: 13px;
+  color: var(--texto-secundario, #a39382);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.preview-subbloque p {
+  color: var(--texto-oscuro, #655345);
+  font-size: 15px;
+  margin: 0;
+  padding-right: 35px; /* Espacio para el botón de borrar */
+  word-break: break-word;
+}
+
+/* Botón de borrado rápido por ítem */
+.boton-borrar-item {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #ff5a5a;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.boton-borrar-item:hover {
+  background: rgba(255, 90, 90, 0.1);
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Enlace estilizado dentro de la previsualización */
+.preview-enlace {
+  color: var(--detalles-dorados, #b59b73);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+/* Adaptabilidad para celulares */
+@media (max-width: 900px) {
+  .wishlist-layout {
+    grid-template-columns: 1fr;
+  }
+}
+  
