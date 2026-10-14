@@ -22,6 +22,8 @@ function ControlSorteo({ usuarios, eventos, volver }) {
       setCargandoSorteos(true);
       const datos = await obtenerDatos("sorteo");
       setSorteos(datos);
+      
+      sincronizarEstadoConDB(eventoId, datos);
     } catch (error) {
       console.error("Error al cargar sorteos: " + error.message);
     } finally {
@@ -32,6 +34,28 @@ function ControlSorteo({ usuarios, eventos, volver }) {
   useEffect(() => {
     cargarSorteos();
   }, []);
+
+  function sincronizarEstadoConDB(idDelEvento, listaSorteos) {
+    const sorteoExistente = listaSorteos.find(
+      (s) => String(s.evento_id) === String(idDelEvento)
+    );
+
+    if (sorteoExistente) {
+      if (sorteoExistente.estado === "pendiente") {
+        setEstadoSorteo("Pendiente de revisión");
+        setAsignadosIds(participantes.map((persona) => persona.id));
+      } else if (sorteoExistente.estado === "publicado") {
+        setEstadoSorteo("Publicado");
+        setAsignadosIds(participantes.map((persona) => persona.id));
+      } else {
+        setEstadoSorteo("No iniciado");
+        setAsignadosIds([]);
+      }
+    } else {
+      setEstadoSorteo("No iniciado");
+      setAsignadosIds([]);
+    }
+  }
 
   async function crearSorteo() {
     if (!eventoId) {
@@ -45,16 +69,15 @@ function ControlSorteo({ usuarios, eventos, volver }) {
         eventoId: eventoId
       });
 
-      setSorteos((anteriores) => [
-        nuevoSorteo,
-        ...anteriores
-      ]);
+      const listaActualizada = [nuevoSorteo, ...sorteos];
+      setSorteos(listaActualizada);
 
-      alert("Sorteo creado en Supabase. Todavía no se han generado las parejas.");
+      alert("¡Sorteo creado con éxito en Supabase!");
       setEstadoSorteo("Pendiente de revisión");
+      setAsignadosIds(participantes.map((persona) => persona.id));
 
     } catch (error) {
-      alert("No se pudo crear el sorteo: " + error.message);
+      alert("No se pudo crear el sorteo en la base de datos: " + error.message);
     } finally {
       setGuardandoSorteo(false);
     }
@@ -62,8 +85,7 @@ function ControlSorteo({ usuarios, eventos, volver }) {
 
   function cambiarEvento(nuevoEventoId) {
     setEventoId(nuevoEventoId);
-    setAsignadosIds([]);
-    setEstadoSorteo("No iniciado");
+    sincronizarEstadoConDB(nuevoEventoId, sorteos);
   }
 
   function iniciarSorteo() {
@@ -148,7 +170,7 @@ function ControlSorteo({ usuarios, eventos, volver }) {
       <div className="control-sorteo">
         <h2>Participantes del evento</h2>
         {cargandoSorteos ? (
-          <p>🔄 Validando registros...</p>
+          <p>🔄 Validando registros en Supabase...</p>
         ) : participantes.length === 0 ? (
           <p>
             No hay participantes asignados a este evento. Ve a Usuarios y
@@ -164,7 +186,7 @@ function ControlSorteo({ usuarios, eventos, volver }) {
                 </div>
                 {asignadosIds.includes(persona.id) ? (
                   <span className="estado-asignado">
-                    ✓ Procesado (simulación)
+                    ✓ Procesado
                   </span>
                 ) : (
                   <span className="estado-pendiente">
