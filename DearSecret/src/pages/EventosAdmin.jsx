@@ -183,7 +183,7 @@ function EventosAdmin({ eventos, setEventos, volver }) {
             <div className="evento-icono">🎁</div>
             <div className="evento-info">
               <h2>{evento.nombre}</h2>
-              <p>Haz clic para gestionar los textos modulares del panel de usuarios.</p>
+              <p>Cambia los parametros del evento</p>
               <div className="datos-evento" style={{ marginTop: "10px" }}>
                 <span>📅 {evento.fecha}</span>
                 <span>💰 S/ {evento.minimo} - S/ {evento.maximo}</span>
