@@ -1006,3 +1006,44 @@ button, input, textarea {
 .boton-eliminar-badge:hover {
   background: rgba(255, 90, 90, 0.1);
 }
+/* Botón para cancelar sorteo publicado (Estilo de alerta) */
+.boton-cancelar-sorteo {
+  border: 1px solid #ff5a5a;
+  border-radius: 12px;
+  padding: 10px 20px;
+  background: #fdf2f2;
+  color: #ff5a5a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.boton-cancelar-sorteo:hover {
+  background: #ff5a5a;
+  color: white;
+}
+
+/* Contenedor flexible para las acciones cuando el sorteo está publicado */
+.publicado-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.publicado-alineacion {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Alerta visual en el selector de eventos */
+.alerta-sorteo-existente {
+  margin-top: 15px;
+  padding: 12px;
+  background: #f7f1e4;
+  border-left: 4px solid #b59b73;
+  font-size: 14px;
+  color: #655345;
+  border-radius: 4px;
+  text-align: left;
+}
