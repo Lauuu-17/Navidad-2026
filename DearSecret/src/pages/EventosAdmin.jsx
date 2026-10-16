@@ -6,29 +6,44 @@ function EventosAdmin({ eventos, setEventos, volver }) {
   const [idEdicion, setIdEdicion] = useState(null);
 
   const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
   const [fecha, setFecha] = useState("");
   const [minimo, setMinimo] = useState("30");
   const [maximo, setMaximo] = useState("60");
   const [guardando, setGuardando] = useState(false);
 
+  const [msgOrganizador, setMsgOrganizador] = useState("");
+  const [msgSecreto, setMsgSecreto] = useState("");
+  const [msgWishlist, setMsgWishlist] = useState("");
+
   function abrirEditar(evento) {
     setIdEdicion(evento.id);
     setNombre(evento.nombre);
-    setDescripcion(evento.descripcion);
     setFecha(evento.fecha);
     setMinimo(String(evento.minimo));
     setMaximo(String(evento.maximo));
+
+    try {
+      const configDinamica = JSON.parse(evento.descripcion);
+      setMsgOrganizador(configDinamica.organizador || "");
+      setMsgSecreto(configDinamica.secreto || "");
+      setMsgWishlist(configDinamica.wishlist || "");
+    } catch {
+      setMsgOrganizador(evento.descripcion || "");
+      setMsgSecreto("No reveles públicamente quién te fue asignado. La idea es mantener la magia de la sorpresa hasta el momento indicado.");
+      setMsgWishlist("Recuerda rellenar tu wishlist para darle pistas clave a tu amigo secreto sobre tus gustos personales.");
+    }
     setMostrarFormulario(true);
   }
 
   function abrirCrear() {
     setIdEdicion(null);
     setNombre("");
-    setDescripcion("");
     setFecha("");
     setMinimo("30");
     setMaximo("60");
+    setMsgOrganizador("");
+    setMsgSecreto("No reveles públicamente quién te fue asignado. La idea es mantener la magia de la sorpresa hasta el momento indicado.");
+    setMsgWishlist("Recuerda rellenar tu wishlist para darle pistas clave a tu amigo secreto sobre tus gustos personales.");
     setMostrarFormulario(true);
   }
 
@@ -40,13 +55,19 @@ function EventosAdmin({ eventos, setEventos, volver }) {
       return;
     }
 
+    const empaquetadoDescripcion = JSON.stringify({
+      organizador: msgOrganizador,
+      secreto: msgSecreto,
+      wishlist: msgWishlist
+    });
+
     try {
       setGuardando(true);
       
       const respuesta = await enviarDatos("eventos", {
         id: idEdicion,
         nombre: nombre,
-        descripcion: descripcion,
+        descripcion: empaquetadoDescripcion,
         fecha: fecha,
         minimo: Number(minimo),
         maximo: Number(maximo)
@@ -66,7 +87,7 @@ function EventosAdmin({ eventos, setEventos, volver }) {
         setEventos((anteriores) =>
           anteriores.map((ev) => (ev.id === idEdicion ? eventoConvertido : ev))
         );
-        alert("Reglas del evento actualizadas correctamente.");
+        alert("¡Estructura de pautas actualizada con éxito!");
       } else {
         setEventos((anteriores) => [eventoConvertido, ...anteriores]);
         alert("Evento guardado correctamente.");
@@ -89,54 +110,67 @@ function EventosAdmin({ eventos, setEventos, volver }) {
 
       <div className="titulo-seccion">
         <div>
-          <h1>Eventos e Instrucciones</h1>
-          <p>Configura las reglas de intercambio que verán los participantes.</p>
+          <h1>Editor Avanzado de Pautas</h1>
+          <p>Personaliza dinámicamente cada bloque del panel que visualizan tus participantes.</p>
         </div>
-
         <button onClick={abrirCrear}>+ Crear evento</button>
       </div>
 
       {mostrarFormulario && (
         <div className="formulario-evento">
-          <h2>{idEdicion ? "✏️ Modificar Reglas e Instrucciones" : "🎁 Crear nuevo evento"}</h2>
+          <h2>{idEdicion ? "✏️ Personalizar Bloques Informativos" : "🎁 Crear nuevo evento"}</h2>
 
           <form onSubmit={guardarEvento}>
             <label>Nombre del evento</label>
-            <input
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej. Navidad 2026"
-              required
-            />
+            <input value={nombre} onChange={(e) => setNombre(e.target.value)} required />
 
-            <label>📜 Instrucciones o Reglas específicas para el Participante</label>
-            <textarea
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              placeholder="Escribe aquí las pautas del intercambio, ideas de entrega o notas del organizador..."
-              required
-            />
-
-            <label>Fecha del intercambio</label>
+            <label>📅 Fecha del intercambio</label>
             <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
 
             <div className="campos-dinero">
               <div>
                 <label>Presupuesto mínimo (S/)</label>
-                <input type="number" min="0" value={minimo} onChange={(e) => setMinimo(e.target.value)} required />
+                <input type="number" value={minimo} onChange={(e) => setMinimo(e.target.value)} required />
               </div>
               <div>
                 <label>Presupuesto máximo (S/)</label>
-                <input type="number" min="0" value={maximo} onChange={(e) => setMaximo(e.target.value)} required />
+                <input type="number" value={maximo} onChange={(e) => setMaximo(e.target.value)} required />
               </div>
             </div>
+
+            <h3 style={{ marginTop: "20px", color: "#655345", fontSize: "15px" }}>✍️ Personalización de Tarjetas</h3>
+            <hr style={{ borderColor: "#dfd5c6", marginBottom: "15px" }} />
+
+            <label>📢 Tarjeta 1: Mensaje del Organizador</label>
+            <textarea
+              value={msgOrganizador}
+              onChange={(e) => setMsgOrganizador(e.target.value)}
+              placeholder="Notas generales, lugar de la fiesta, penalizaciones..."
+              required
+            />
+
+            <label>🤫 Tarjeta 2: Pauta de Confidencialidad (Secreto)</label>
+            <textarea
+              value={msgSecreto}
+              onChange={(e) => setMsgSecreto(e.target.value)}
+              placeholder="Escribe las condiciones para mantener el anonimato..."
+              required
+            />
+
+            <label>💝 Tarjeta 3: Instrucción de la Wishlist</label>
+            <textarea
+              value={msgWishlist}
+              onChange={(e) => setMsgWishlist(e.target.value)}
+              placeholder="Instrucciones sobre cómo rellenar los gustos..."
+              required
+            />
 
             <div className="acciones-formulario">
               <button type="button" className="boton-secundario" onClick={() => setMostrarFormulario(false)}>
                 Cancelar
               </button>
               <button type="submit" disabled={guardando}>
-                {guardando ? "Guardando..." : "Guardar Cambios"}
+                {guardando ? "Guardando Configuración..." : "Guardar Cambios Avanzados"}
               </button>
             </div>
           </form>
@@ -149,14 +183,11 @@ function EventosAdmin({ eventos, setEventos, volver }) {
             <div className="evento-icono">🎁</div>
             <div className="evento-info">
               <h2>{evento.nombre}</h2>
-              <p style={{ fontStyle: "italic" }}>{evento.descripcion || "Sin instrucciones añadidas."}</p>
+              <p>Haz clic para gestionar los textos modulares del panel de usuarios.</p>
               <div className="datos-evento" style={{ marginTop: "10px" }}>
                 <span>📅 {evento.fecha}</span>
                 <span>💰 S/ {evento.minimo} - S/ {evento.maximo}</span>
               </div>
-              <button className="boton-tabla" style={{ marginTop: "15px", width: "100%" }}>
-                ⚙️ Editar Reglas / Pautas
-              </button>
             </div>
             <span className="estado-evento">{evento.estado}</span>
           </div>

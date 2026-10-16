@@ -14,9 +14,24 @@ function Reglas({ eventoId, volver }) {
         
         const eventoActual = datos.find((e) => String(e.id) === String(eventoId));
         if (eventoActual) {
+          let organizadorText = "";
+          let secretoText = "No reveles públicamente quién te fue asignado. La idea es mantener la magia de la sorpresa hasta el momento indicado.";
+          let wishlistText = "Recuerda rellenar tu wishlist para darle pistas clave a tu amigo secreto sobre tus gustos personales.";
+
+          try {
+            const config = JSON.parse(eventoActual.descripcion);
+            organizadorText = config.organizador || "";
+            secretoText = config.secreto || secretoText;
+            wishlistText = config.wishlist || wishlistText;
+          } catch {
+            organizadorText = eventoActual.descripcion || "";
+          }
+
           setDetallesEvento({
             nombre: eventoActual.nombre,
-            descripcion: eventoActual.descripcion,
+            organizador: organizadorText,
+            secreto: secretoText,
+            wishlist: wishlistText,
             presupuesto_min: eventoActual.presupuesto_min,
             presupuesto_max: eventoActual.presupuesto_max,
             fecha: eventoActual.fecha
@@ -41,26 +56,26 @@ function Reglas({ eventoId, volver }) {
       <div className="titulo-seccion">
         <div>
           <h1>📜 Reglas del evento</h1>
-          <p>Condiciones y pautas que debes tener en cuenta durante el intercambio.</p>
+          <p>Condiciones y pautas personalizadas por el administrador del intercambio.</p>
         </div>
       </div>
 
       {cargando ? (
-        <p>🔄 Leyendo pautas del servidor...</p>
+        <p>🔄 Leyendo pautas configuradas...</p>
       ) : (
         <div className="reglas-card">
           <h2>{detallesEvento?.nombre || "Cargando evento..."}</h2>
 
           <h3>📢 Mensaje y notas del Organizador</h3>
           <p className="nota-organizador-box">
-            {detallesEvento?.descripcion || "Cada participante recibirá una persona asignada al iniciar el sorteo."}
+            {detallesEvento?.organizador || "Cada participante recibirá una persona asignada al iniciar el sorteo."}
           </p>
 
           <h3>💰 Presupuesto Acordado</h3>
           <p>
             {detallesEvento 
               ? `El valor recomendado del regalo es entre S/ ${Number(detallesEvento.presupuesto_min).toFixed(2)} y S/ ${Number(detallesEvento.presupuesto_max).toFixed(2)}.`
-              : "El valor del regalo se definirá pronto."}
+              : "El valor del regalo se definirá pronto por el organizador."}
           </p>
 
           <h3>📅 Fecha de Entrega</h3>
@@ -71,13 +86,13 @@ function Reglas({ eventoId, volver }) {
           </p>
 
           <h3>🤫 Mantén el secreto</h3>
-          <p>
-            No reveles públicamente quién te fue asignado. La idea es mantener la magia de la sorpresa hasta el momento indicado.
+          <p style={{ whiteSpace: "pre-line" }}>
+            {detallesEvento?.secreto}
           </p>
 
           <h3>💝 Wishlist</h3>
-          <p>
-            Recuerda rellenar tu wishlist para darle pistas clave a tu amigo secreto sobre tus gustos personales.
+          <p style={{ whiteSpace: "pre-line" }}>
+            {detallesEvento?.wishlist}
           </p>
         </div>
       )}
