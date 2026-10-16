@@ -105,13 +105,22 @@ async function cargarUsuarios() {
     try {
       setCargandoReglas(true);
       const datos = await obtenerDatos("reglas");
-      const reglasConvertidas = datos.map((regla) => ({
-        id: regla.id,
-        eventoId: regla.evento_id,
-        tipo: regla.tipo,
-        origenId: regla.origen_id,
-        destinoId: regla.destino_id
-      }));
+      
+      const reglasConvertidas = datos.map((regla) => {
+        const origen = usuarios.find((u) => String(u.id) === String(regla.origen_id));
+        const destino = usuarios.find((u) => String(u.id) === String(regla.destino_id));
+
+        return {
+          id: regla.id,
+          eventoId: regla.evento_id,
+          tipo: regla.tipo,
+          origenId: regla.origen_id,
+          origenNombre: origen ? origen.nombre : "Desconocido",
+          destinoId: regla.destino_id,
+          destinoNombre: destino ? destino.nombre : "Desconocido"
+        };
+      });
+      
       setReglas(reglasConvertidas);
     } catch (error) {
       console.error("Error al cargar las reglas: " + error.message);
@@ -119,6 +128,7 @@ async function cargarUsuarios() {
       setCargandoReglas(false);
     }
   }
+
 
   useEffect(() => {
     async function verificarPersistencia() {

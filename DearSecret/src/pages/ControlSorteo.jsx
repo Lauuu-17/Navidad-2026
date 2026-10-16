@@ -12,6 +12,7 @@ function ControlSorteo({ usuarios, eventos, volver }) {
   const [sorteos, setSorteos] = useState([]);
   const [cargandoSorteos, setCargandoSorteos] = useState(false);
   const [guardandoSorteo, setGuardandoSorteo] = useState(false);
+  const [cargandoInicial, setCargandoInicial] = useState(true);
 
   const participantes = usuarios.filter(
     (persona) => String(persona.eventoId) === String(eventoId)
@@ -28,12 +29,14 @@ function ControlSorteo({ usuarios, eventos, volver }) {
       console.error("Error al cargar sorteos: " + error.message);
     } finally {
       setCargandoSorteos(false);
+      setCargandoInicial(false);
     }
   }
 
   useEffect(() => {
     cargarSorteos();
-  }, []);
+  }, [eventoId]); 
+
 
   function sincronizarEstadoConDB(idDelEvento, listaSorteos, participantesActuales = participantes) {
     if (!listaSorteos || listaSorteos.length === 0) {
@@ -251,54 +254,52 @@ function ControlSorteo({ usuarios, eventos, volver }) {
       </div>
 
       <div className="acciones-sorteo">
-        {estadoSorteo === "No iniciado" && (
+        {cargandoInicial ? (
+          <p>🔄 Sincronizando estado del sorteo...</p>
+        ) : (
           <>
-            <button
-              className="boton-secundario"
-              onClick={iniciarSorteo}
-              disabled={participantes.length < 2}
-            >
-              🎲 Ejecutar prueba local
-            </button>
+            {estadoSorteo === "No iniciado" && (
+              <>
+                <button
+                  className="boton-secundario"
+                  onClick={iniciarSorteo}
+                  disabled={participantes.length < 2}
+                >
+                  🎲 Ejecutar prueba local
+                </button>
+                <button 
+                  onClick={crearSorteo} 
+                  disabled={participantes.length < 2 || guardandoSorteo}
+                >
+                  {guardandoSorteo ? "Creando..." : "Crear sorteo oficial"}
+                </button>
+              </>
+            )}
 
-            <button 
-              onClick={crearSorteo} 
-              disabled={participantes.length < 2 || guardandoSorteo}
-            >
-              {guardandoSorteo ? "Creando..." : "Crear sorteo oficial"}
-            </button>
+            {estadoSorteo === "Pendiente de revisión" && (
+              <>
+                <button className="boton-secundario" onClick={reiniciarSorteo}>
+                  💥 Eliminar y Reiniciar Sorteo
+                </button>
+                <button onClick={publicarSorteo}>
+                  😁 Aprobar y Publicar
+                </button>
+              </>
+            )}
+
+            {estadoSorteo === "Publicado" && (
+              <div className="publicado-layout">
+                <div className="sorteo-publicado">
+                  🔒 Sorteo oficial activo y publicado. Las parejas se encuentran distribuidas en los paneles de cada participante.
+                </div>
+                <div className="publicado-alineacion">
+                  <button className="boton-cancelar-sorteo" onClick={reiniciarSorteo}>
+                    ⚠️ Cancelar Sorteo y Reconfigurar Reglas
+                  </button>
+                </div>
+              </div>
+            )}
           </>
-        )}
-
-        {estadoSorteo === "Pendiente de revisión" && (
-          <>
-            <button
-              className="boton-secundario"
-              onClick={reiniciarSorteo}
-            >
-              💥 Eliminar y Reiniciar Sorteo
-            </button>
-
-            <button onClick={publicarSorteo}>
-              😁 Aprobar y Publicar
-            </button>
-          </>
-        )}
-
-        {estadoSorteo === "Publicado" && (
-          <div className="publicado-layout">
-            <div className="sorteo-publicado">
-              🔒 Sorteo oficial activo y publicado. Las parejas se encuentran distribuidas en los paneles de cada participante.
-            </div>
-            <div className="publicado-alineacion">
-              <button
-                className="boton-cancelar-sorteo"
-                onClick={reiniciarSorteo}
-              >
-                ⚠️ Cancelar Sorteo y Reconfigurar Reglas
-              </button>
-            </div>
-          </div>
         )}
       </div>
     </div>
