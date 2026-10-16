@@ -63,9 +63,6 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     }
   }
 
-
-
-
   async function crearSorteo() {
     if (!eventoId) {
       alert("Selecciona un evento válido.");
@@ -88,7 +85,6 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     }
   }
 
-
   function cambiarEvento(nuevoEventoId) {
     setEventoId(nuevoEventoId);
     
@@ -98,7 +94,6 @@ function ControlSorteo({ usuarios, eventos, volver }) {
 
     sincronizarEstadoConDB(nuevoEventoId, sorteos, nuevosParticipantes);
   }
-
 
   function iniciarSorteo() {
     if (participantes.length < 2) {
@@ -136,7 +131,6 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     }
   }
 
-
   async function publicarSorteo() {
     if (!eventoId) return;
 
@@ -156,8 +150,6 @@ function ControlSorteo({ usuarios, eventos, volver }) {
       setCargandoSorteos(false);
     }
   }
-
-
 
   const eventoActual = eventos.find(
     (evento) => String(evento.id) === String(eventoId)
@@ -202,6 +194,12 @@ function ControlSorteo({ usuarios, eventos, volver }) {
             Fecha: {eventoActual.fecha} · Presupuesto: S/{" "}
             {eventoActual.minimo} - S/ {eventoActual.maximo}
           </p>
+        )}
+
+        {estadoSorteo !== "No iniciado" && (
+          <div className="alerta-sorteo-existente">
+            <strong>Aviso del sistema:</strong> Este evento ya cuenta con un registro de sorteo guardado en Supabase. Si modificas las restricciones o participantes en las otras pestañas
+          </div>
         )}
       </div>
 
@@ -288,23 +286,21 @@ function ControlSorteo({ usuarios, eventos, volver }) {
         )}
 
         {estadoSorteo === "Publicado" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "15px", width: "100%" }}>
+          <div className="publicado-layout">
             <div className="sorteo-publicado">
-              Sorteo oficial activo y publicado
+              🔒 Sorteo oficial activo y publicado. Las parejas se encuentran distribuidas en los paneles de cada participante.
             </div>
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div className="publicado-alineacion">
               <button
-                className="boton-secundario"
-                style={{ borderColor: "#ff5a5a", color: "#ff5a5a" }}
+                className="boton-cancelar-sorteo"
                 onClick={reiniciarSorteo}
               >
-                Cancelar Sorteo y Reconfigurar Reglas
+                ⚠️ Cancelar Sorteo y Reconfigurar Reglas
               </button>
             </div>
           </div>
         )}
       </div>
-
     </div>
   );
 }
