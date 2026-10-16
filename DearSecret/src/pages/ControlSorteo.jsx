@@ -35,7 +35,7 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     cargarSorteos();
   }, []);
 
-  function sincronizarEstadoConDB(idDelEvento, listaSorteos) {
+  function sincronizarEstadoConDB(idDelEvento, listaSorteos, participantesActuales = participantes) {
     if (!listaSorteos || listaSorteos.length === 0) {
       setEstadoSorteo("No iniciado");
       setAsignadosIds([]);
@@ -49,10 +49,10 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     if (sorteoExistente) {
       if (sorteoExistente.estado === "pendiente") {
         setEstadoSorteo("Pendiente de revisión");
-        setAsignadosIds(participantes.map((persona) => persona.id));
+        setAsignadosIds(participantesActuales.map((persona) => persona.id));
       } else if (sorteoExistente.estado === "publicado") {
         setEstadoSorteo("Publicado");
-        setAsignadosIds(participantes.map((persona) => persona.id));
+        setAsignadosIds(participantesActuales.map((persona) => persona.id));
       } else {
         setEstadoSorteo("No iniciado");
         setAsignadosIds([]);
@@ -64,6 +64,8 @@ function ControlSorteo({ usuarios, eventos, volver }) {
   }
 
 
+
+
   async function crearSorteo() {
     if (!eventoId) {
       alert("Selecciona un evento válido.");
@@ -72,17 +74,13 @@ function ControlSorteo({ usuarios, eventos, volver }) {
 
     try {
       setGuardandoSorteo(true);
-      const nuevoSorteo = await enviarDatos("sorteo", {
+      await enviarDatos("sorteo", {
         eventoId: eventoId
       });
 
-      const listaActualizada = [nuevoSorteo, ...sorteos];
-      setSorteos(listaActualizada);
+      await cargarSorteos();
 
-      alert("¡Sorteo creado con éxito en Supabase!");
-      setEstadoSorteo("Pendiente de revisión");
-      setAsignadosIds(participantes.map((persona) => persona.id));
-
+      alert("¡Sorteo base sincronizado con éxito!");
     } catch (error) {
       alert("No se pudo crear el sorteo en la base de datos: " + error.message);
     } finally {
@@ -90,10 +88,17 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     }
   }
 
+
   function cambiarEvento(nuevoEventoId) {
     setEventoId(nuevoEventoId);
-    sincronizarEstadoConDB(nuevoEventoId, sorteos);
+    
+    const nuevosParticipantes = usuarios.filter(
+      (persona) => String(persona.eventoId) === String(nuevoEventoId)
+    );
+
+    sincronizarEstadoConDB(nuevoEventoId, sorteos, nuevosParticipantes);
   }
+
 
   function iniciarSorteo() {
     if (participantes.length < 2) {
@@ -141,13 +146,17 @@ function ControlSorteo({ usuarios, eventos, volver }) {
         eventoId: eventoId,
         ejecutarEmparejamiento: true
       });
-      setEstadoSorteo("Publicado");
+
+      await cargarSorteos();
+
+      alert("🎉 ¡Sorteo oficial generado y publicado exitosamente!");
     } catch (error) {
       alert("Error al procesar el sorteo oficial: " + error.message);
     } finally {
       setCargandoSorteos(false);
     }
   }
+
 
 
   const eventoActual = eventos.find(
@@ -269,21 +278,33 @@ function ControlSorteo({ usuarios, eventos, volver }) {
               className="boton-secundario"
               onClick={reiniciarSorteo}
             >
-              ↻ Reiniciar vista
+              💥 Eliminar y Reiniciar Sorteo
             </button>
 
             <button onClick={publicarSorteo}>
-              ✓ Aprobar y Publicar
+              😁 Aprobar y Publicar
             </button>
           </>
         )}
 
         {estadoSorteo === "Publicado" && (
-          <div className="sorteo-publicado">
-            ¡Sorteo oficial publicado! Las parejas ya se encuentran disponibles en los paneles.
+          <div style={{ display: "flex", flexDirection: "column", gap: "15px", width: "100%" }}>
+            <div className="sorteo-publicado">
+              Sorteo oficial activo y publicado
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                className="boton-secundario"
+                style={{ borderColor: "#ff5a5a", color: "#ff5a5a" }}
+                onClick={reiniciarSorteo}
+              >
+                Cancelar Sorteo y Reconfigurar Reglas
+              </button>
+            </div>
           </div>
         )}
       </div>
+
     </div>
   );
 }
