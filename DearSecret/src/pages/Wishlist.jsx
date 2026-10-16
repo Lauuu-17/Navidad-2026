@@ -111,8 +111,8 @@ function Wishlist({ usuarioId, eventoId, volver }) {
 
       <div className="titulo-seccion">
         <div>
-          <h1>💝 Mi Wishlist Dinámica</h1>
-          <p>Añade múltiples opciones y administra tus gustos individualmente.</p>
+          <h1>💝 Mi Wishlist</h1>
+          <p>Añade múltiples opciones y administra tus gustos...</p>
         </div>
       </div>
 

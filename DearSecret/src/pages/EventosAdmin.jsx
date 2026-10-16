@@ -3,15 +3,36 @@ import { enviarDatos } from "../services/api";
 
 function EventosAdmin({ eventos, setEventos, volver }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [idEdicion, setIdEdicion] = useState(null);
 
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [fecha, setFecha] = useState("");
   const [minimo, setMinimo] = useState("30");
   const [maximo, setMaximo] = useState("60");
-   const [guardando, setGuardando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
 
-  async function crearEvento(e) {
+  function abrirEditar(evento) {
+    setIdEdicion(evento.id);
+    setNombre(evento.nombre);
+    setDescripcion(evento.descripcion);
+    setFecha(evento.fecha);
+    setMinimo(String(evento.minimo));
+    setMaximo(String(evento.maximo));
+    setMostrarFormulario(true);
+  }
+
+  function abrirCrear() {
+    setIdEdicion(null);
+    setNombre("");
+    setDescripcion("");
+    setFecha("");
+    setMinimo("30");
+    setMaximo("60");
+    setMostrarFormulario(true);
+  }
+
+  async function guardarEvento(e) {
     e.preventDefault();
 
     if (Number(minimo) > Number(maximo)) {
@@ -21,7 +42,9 @@ function EventosAdmin({ eventos, setEventos, volver }) {
 
     try {
       setGuardando(true);
-      const nuevoEvento = await enviarDatos("eventos", {
+      
+      const respuesta = await enviarDatos("eventos", {
+        id: idEdicion,
         nombre: nombre,
         descripcion: descripcion,
         fecha: fecha,
@@ -30,31 +53,29 @@ function EventosAdmin({ eventos, setEventos, volver }) {
       });
 
       const eventoConvertido = {
-        id: nuevoEvento.id,
-        nombre: nuevoEvento.nombre,
-        descripcion: nuevoEvento.descripcion || "",
-        fecha: nuevoEvento.fecha,
-        minimo: nuevoEvento.presupuesto_min,
-        maximo: nuevoEvento.presupuesto_max,
-        estado: nuevoEvento.estado
+        id: respuesta.id,
+        nombre: respuesta.nombre,
+        descripcion: respuesta.descripcion || "",
+        fecha: respuesta.fecha,
+        minimo: respuesta.presupuesto_min,
+        maximo: respuesta.presupuesto_max,
+        estado: respuesta.estado
       };
 
-      setEventos((anteriores) => [
-        eventoConvertido,
-        ...anteriores
-      ]);
+      if (idEdicion) {
+        setEventos((anteriores) =>
+          anteriores.map((ev) => (ev.id === idEdicion ? eventoConvertido : ev))
+        );
+        alert("Reglas del evento actualizadas correctamente.");
+      } else {
+        setEventos((anteriores) => [eventoConvertido, ...anteriores]);
+        alert("Evento guardado correctamente.");
+      }
 
-      alert("Evento guardado correctamente.");
-
-      setNombre("");
-      setDescripcion("");
-      setFecha("");
-      setMinimo("30");
-      setMaximo("60");
       setMostrarFormulario(false);
-
+      setIdEdicion(null);
     } catch (error) {
-      alert("No se pudo guardar el evento: " + error.message);
+      alert("No se pudo procesar el evento: " + error.message);
     } finally {
       setGuardando(false);
     }
@@ -68,20 +89,18 @@ function EventosAdmin({ eventos, setEventos, volver }) {
 
       <div className="titulo-seccion">
         <div>
-          <h1>Eventos</h1>
-          <p>Crea y administra los intercambios de regalos.</p>
+          <h1>Eventos e Instrucciones</h1>
+          <p>Configura las reglas de intercambio que verán los participantes.</p>
         </div>
 
-        <button onClick={() => setMostrarFormulario(true)}>
-          + Crear evento
-        </button>
+        <button onClick={abrirCrear}>+ Crear evento</button>
       </div>
 
       {mostrarFormulario && (
         <div className="formulario-evento">
-          <h2>Crear nuevo evento</h2>
+          <h2>{idEdicion ? "✏️ Modificar Reglas e Instrucciones" : "🎁 Crear nuevo evento"}</h2>
 
-          <form onSubmit={crearEvento}>
+          <form onSubmit={guardarEvento}>
             <label>Nombre del evento</label>
             <input
               value={nombre}
@@ -90,56 +109,34 @@ function EventosAdmin({ eventos, setEventos, volver }) {
               required
             />
 
-            <label>Descripción</label>
+            <label>📜 Instrucciones o Reglas específicas para el Participante</label>
             <textarea
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              placeholder="Descripción del intercambio"
+              placeholder="Escribe aquí las pautas del intercambio, ideas de entrega o notas del organizador..."
+              required
             />
 
             <label>Fecha del intercambio</label>
-            <input
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              required
-            />
+            <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
 
             <div className="campos-dinero">
               <div>
                 <label>Presupuesto mínimo (S/)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={minimo}
-                  onChange={(e) => setMinimo(e.target.value)}
-                  required
-                />
+                <input type="number" min="0" value={minimo} onChange={(e) => setMinimo(e.target.value)} required />
               </div>
-
               <div>
                 <label>Presupuesto máximo (S/)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={maximo}
-                  onChange={(e) => setMaximo(e.target.value)}
-                  required
-                />
+                <input type="number" min="0" value={maximo} onChange={(e) => setMaximo(e.target.value)} required />
               </div>
             </div>
 
             <div className="acciones-formulario">
-              <button
-                type="button"
-                className="boton-secundario"
-                onClick={() => setMostrarFormulario(false)}
-              >
+              <button type="button" className="boton-secundario" onClick={() => setMostrarFormulario(false)}>
                 Cancelar
               </button>
-
               <button type="submit" disabled={guardando}>
-                {guardando ? "Guardando..." : "Guardar evento"}
+                {guardando ? "Guardando..." : "Guardar Cambios"}
               </button>
             </div>
           </form>
@@ -148,32 +145,23 @@ function EventosAdmin({ eventos, setEventos, volver }) {
 
       <div className="lista-eventos">
         {eventos.map((evento) => (
-          <div className="evento-card" key={evento.id}>
+          <div className="evento-card" key={evento.id} onClick={() => abrirEditar(evento)}>
             <div className="evento-icono">🎁</div>
-
             <div className="evento-info">
               <h2>{evento.nombre}</h2>
-              <p>{evento.descripcion}</p>
-
-              <div className="datos-evento">
-                <span>
-                  📅 {evento.fecha}
-                </span>
-
-                <span>
-                  💰 S/ {evento.minimo} - S/ {evento.maximo}
-                </span>
+              <p style={{ fontStyle: "italic" }}>{evento.descripcion || "Sin instrucciones añadidas."}</p>
+              <div className="datos-evento" style={{ marginTop: "10px" }}>
+                <span>📅 {evento.fecha}</span>
+                <span>💰 S/ {evento.minimo} - S/ {evento.maximo}</span>
               </div>
+              <button className="boton-tabla" style={{ marginTop: "15px", width: "100%" }}>
+                ⚙️ Editar Reglas / Pautas
+              </button>
             </div>
-
             <span className="estado-evento">{evento.estado}</span>
           </div>
         ))}
       </div>
-
-      {eventos.length === 0 && (
-        <p>Todavía no has creado eventos.</p>
-      )}
     </div>
   );
 }
