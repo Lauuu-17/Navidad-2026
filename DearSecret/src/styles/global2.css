@@ -1,11 +1,40 @@
+/* ==========================================================================
+   IMPORTACIÓN DE FUENTES TEMÁTICAS DESDE GOOGLE FONTS (REAL)
+   ========================================================================== */
+@import url('https://googleapis.com');
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-button, input, textarea {
-  font: inherit;
+/* ==========================================================================
+   CONFIGURACIÓN MAESTRA DE TÍTULOS (ESTILO FRAUNCES FESTIVO)
+   ========================================================================== */
+h1, h2, h3, h4, h5, h6, .titulo-seccion, .logo {
+  font-family: 'Fraunces', Georgia, serif;
+  font-variant-numeric: lining-nums; /* Embellece y alinea los números */
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 32px;
+  letter-spacing: -0.5px;
+}
+
+h2 {
+  font-size: 24px;
+  letter-spacing: -0.3px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
+h4 {
+  font-size: 14px;
 }
 
 /* ==========================================================================
@@ -19,7 +48,8 @@ button, input, textarea {
   align-items: center;
   padding: 20px;
   background: linear-gradient(180deg, #253B2D 0%, #1B2A21 100%);
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Sincronizado a Nunito Sans */
+  font-family: 'Nunito Sans', system-ui, -apple-system, sans-serif;
   color: #ffffff;
 }
 
@@ -33,15 +63,19 @@ button, input, textarea {
   align-items: center;
 }
 
-.logo {
-  font-size: 56px;
-  text-align: center;
-  margin-bottom: 20px;
+.logo-imagen {
+  width: 160px; /* Reducido a tamaño óptimo para evitar desborde en pantallas normales */
+  height: auto;
+  object-fit: contain;
+  margin-top: -30px;    
+  margin-bottom: -40px; 
+  filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.25));
 }
 
 .login-card h1 {
   text-align: center;
   color: #ffffff;
+  font-family: 'Fraunces', serif;
   font-size: 40px;
   font-weight: 800;
   letter-spacing: -1px;
@@ -76,6 +110,7 @@ button, input, textarea {
   border-radius: 4px;
   background: #1B2A21;
   color: #ffffff;
+  font-family: 'Nunito Sans', sans-serif;
   transition: all 0.2s ease;
 }
 
@@ -84,6 +119,7 @@ button, input, textarea {
   border-color: #B8D943;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
+
 .input-contrasena-container {
   position: relative;
   display: flex;
@@ -91,13 +127,11 @@ button, input, textarea {
   width: 100%;
 }
 
-/* Espacio extra a la derecha del input para que el texto no tape el ojo */
 .login-card .input-contrasena-container input {
   width: 100%;
   padding-right: 45px;
 }
 
-/* Botón interactivo para alternar visibilidad */
 .boton-mostrar-ocultar {
   position: absolute;
   right: 12px;
@@ -116,7 +150,6 @@ button, input, textarea {
   transform: scale(1.1);
 }
 
-/* Botón estilo píldora exclusivo para el Login */
 .boton-login {
   cursor: pointer;
   border: none;
@@ -124,6 +157,7 @@ button, input, textarea {
   padding: 14px 32px;
   background: #253B2D;
   color: #FFFFFF; 
+  font-family: 'Nunito Sans', sans-serif;
   font-weight: 700;
   letter-spacing: 0.5px;
   transition: all 0.2s ease-in-out;
@@ -134,22 +168,31 @@ button, input, textarea {
 
 .boton-login:hover {
   background: #B8D943;
+  color: #1B2A21;
   transform: scale(1.02);
 }
 
-
 /* ==========================================================================
-   ESTILOS PARA LOS PANELES INTERNOS (MODO CLARO / VERDE PINO PREMIUM)
+   ESTILOS PARA LOS PANELES INTERNOS (MODO CLARO / NUNITO SANS BASE)
    ========================================================================== */
+
+html, body {
+  min-height: 100vh;
+  background-color: #f7f0df;
+  color: #302d32;
+  font-family: 'Nunito Sans', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+button, input, textarea, select {
+  font-family: 'Nunito Sans', sans-serif;
+}
 
 .dashboard-theme {
   min-height: 100vh;
-  background: #f7f0df; /* Fondo gris claro impecable */
-  color: #302d32;
-  font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Encabezado del Dashboard */
 .encabezado {
   background: #fffcf5;
   color: #302d32;
@@ -162,22 +205,17 @@ button, input, textarea {
 }
 
 .encabezado h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #253B2D; /* Identificador en verde pino */
+  color: #253B2D;
 }
 
-/* Contenido Principal */
 .contenido {
   max-width: 1200px;
-  margin: 32px auto;
-  padding: 0 20px;
+  margin: 0 auto;
+  padding: 40px 20px;
 }
 
 .contenido h1 {
   color: #302D32;
-  font-size: 28px;
-  font-weight: 700;
   margin-bottom: 8px;
 }
 
@@ -207,8 +245,6 @@ button, input, textarea {
 
 .tarjeta h3 {
   color: #253B2D;
-  font-size: 18px;
-  font-weight: 600;
 }
 
 .tarjeta p {
@@ -254,7 +290,6 @@ button, input, textarea {
   color: #302d32;
 }
 
-/* --- Banner Verde de Bienvenida del Participante --- */
 .bienvenida {
   background: #253B2D;
   color: #ffffff;
@@ -273,8 +308,7 @@ button, input, textarea {
 
 .bienvenida h1 {
   color: #ffffff;
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 36px; 
   margin: 12px 0;
 }
 
@@ -292,21 +326,21 @@ button, input, textarea {
   margin-top: 20px;
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
+
 .revelacion-box h4 {
-  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #6B625F;
   margin-bottom: 8px;
-  font-weight: 700;
 }
+
 .revelacion-box .nombre-secreto {
-  font-size: 36px;
+  font-size: 40px;
   font-weight: 800;
   color: #253B2D;
   margin-bottom: 12px;
 }
-/* Responsivo */
+
 @media (max-width: 600px) {
   .login-card h1 {
     font-size: 32px;
@@ -321,6 +355,7 @@ button, input, textarea {
     padding: 25px;
   }
 }
+
 :root {
   --bg-principal: #F7F0DF;
   --bg-card: #FFFCF5;
@@ -955,4 +990,14 @@ button, input, textarea {
   border-left: 4px solid #b59b73;
   color: #655345;
   margin-top: 8px;
+}
+.logo-imagen {
+  width: 620px;
+  height: auto;
+  object-fit: contain;
+  
+  margin-top: -180px;    
+  margin-bottom: -120px; 
+  
+  filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.25));
 }

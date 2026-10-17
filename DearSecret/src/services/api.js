@@ -4,18 +4,20 @@ const API_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:8888/.netlify/functions" 
   : "/.netlify/functions";
 async function obtenerToken() {
-  const { data, error } = await supabaseCliente.auth.getSession();
+  const { data: { session }, error } = await supabaseCliente.auth.getSession();
 
-  if (error) {
-    throw new Error("No se pudo comprobar la sesión.");
+  if (error || !session) {
+    const { data: refreshData, error: refreshError } = await supabaseCliente.auth.refreshSession();
+    
+    if (refreshError || !refreshData.session) {
+      throw new Error("Debes iniciar sesión para continuar.");
+    }
+    return refreshData.session.access_token;
   }
 
-  if (!data.session) {
-    throw new Error("Debes iniciar sesión para continuar.");
-  }
-
-  return data.session.access_token;
+  return session.access_token;
 }
+
 
 export async function obtenerDatos(nombreFuncion) {
   const token = await obtenerToken(); 

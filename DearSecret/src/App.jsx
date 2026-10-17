@@ -8,8 +8,9 @@ import Reglas from "./pages/Reglas";
 import MiAmigoSecreto from "./pages/MiAmigoSecreto";
 import ReglasAdmin from "./pages/ReglasAdmin";
 import { obtenerDatos } from "./services/api";
-import { iniciarSesion as autenticarUsuario, cerrarSesion as cerrarSesionSupabase, recuperarSesionPersistente  } from "./services/authService";
-import supabaseCliente from "./services/supabaseCliente"
+import { iniciarSesion as autenticarUsuario, cerrarSesion as cerrarSesionSupabase } from "./services/authService";
+import supabaseCliente from "./services/supabaseCliente";
+import logoNavidad from "./assets/logo-navidad.png"; 
 
 function App() {
   const [usuario, setUsuario] = useState(""); 
@@ -23,18 +24,7 @@ function App() {
   const [usuarios, setUsuarios] = useState([]);
   const [comprobandoSesion, setComprobandoSesion] = useState(true);
 
-
-  const [eventos, setEventos] = useState([
-    {
-      id: 1,
-      nombre: "Intercambio de Navidad 2026",
-      descripcion: "Intercambio de regalos entre amigos.",
-      fecha: "2026-12-24",
-      minimo: "30",
-      maximo: "60",
-      estado: "Preparación"
-    }
-  ]);
+  const [eventos, setEventos] = useState([]);
   const [cargandoEventos, setCargandoEventos] = useState(true);
   const [errorEventos, setErrorEventos] = useState("");
   const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
@@ -42,132 +32,49 @@ function App() {
   const [reglas, setReglas] = useState([]);
   const [cargandoReglas, setCargandoReglas] = useState(false);
 
-  async function cargarEventos() {
-    try {
-      setCargandoEventos(true);
-      setErrorEventos("");
-
-      const datos = await obtenerDatos("eventos");
-
-      const eventosConvertidos = datos.map((evento) => ({
-        id: evento.id,
-        nombre: evento.nombre,
-        descripcion: evento.descripcion || "",
-        fecha: evento.fecha,
-        minimo: evento.presupuesto_min,
-        maximo: evento.presupuesto_max,
-        estado: evento.estado
-      }));
-
-      setEventos(eventosConvertidos);
-    } catch (error) {
-      setErrorEventos(error.message);
-    } finally {
-      setCargandoEventos(false);
-    }
-  }
-
-async function cargarUsuarios() {
-  try {
-    setCargandoUsuarios(true);
-    setErrorUsuarios("");
-
-    const datos = await obtenerDatos("usuarios");
-
-    const usuariosConvertidos = datos.map((u) => {
-      let evId = "";
-      
-      if (u.eventos && Array.isArray(u.eventos) && u.eventos.length > 0) {
-        evId = u.eventos[0].eventoId;
-      } else if (u.participaciones && u.participaciones.length > 0) {
-        evId = u.participaciones[0].evento_id;
-      }
-
-      return {
-        id: u.id,
-        nombre: u.nombre,
-        usuario: u.username || u.usuario || "", 
-        rol: u.rol || "participante",
-        eventoId: evId 
-      };
-    });
-
-    setUsuarios(usuariosConvertidos);
-  } catch (error) {
-    console.error("Error en cargarUsuarios:", error);
-    setErrorUsuarios(error.message);
-  } finally {
-    setCargandoUsuarios(false);
-  }
-}
-
-  async function cargarReglas() {
-    try {
-      setCargandoReglas(true);
-      const datos = await obtenerDatos("reglas");
-      
-      const reglasConvertidas = datos.map((regla) => {
-        const origen = usuarios.find((u) => String(u.id) === String(regla.origen_id));
-        const destino = usuarios.find((u) => String(u.id) === String(regla.destino_id));
-
-        return {
-          id: regla.id,
-          eventoId: regla.evento_id,
-          tipo: regla.tipo,
-          origenId: regla.origen_id,
-          origenNombre: origen ? origen.nombre : "Desconocido",
-          destinoId: regla.destino_id,
-          destinoNombre: destino ? destino.nombre : "Desconocido"
-        };
-      });
-      
-      setReglas(reglasConvertidas);
-    } catch (error) {
-      console.error("Error al cargar las reglas: " + error.message);
-    } finally {
-      setCargandoReglas(false);
-    }
-  }
-
-
+  // Escuchador dinámico de sesión persistente activa
   useEffect(() => {
-    async function verificarPersistencia() {
+    async function cargarPerfilUsuario(sessionUser) {
       try {
-        const { data: { session }, error: errorSesion } = await supabaseCliente.auth.getSession();
-        
-        if (session && session.user) {
-          const { data: perfil, error: errorPerfil } = await supabaseCliente
-            .from("usuarios")
-            .select("rol, nombre, username")
-            .eq("auth_user_id", session.user.id)
-            .single();
+        const { data: perfil, error: errorPerfil } = await supabaseCliente
+          .from("usuarios")
+          .select("id, rol, nombre, username")
+          .eq("auth_user_id", sessionUser.id)
+          .single();
 
-          if (errorPerfil) throw errorPerfil;
+        if (errorPerfil) throw errorPerfil;
 
-          if (perfil) {
-            const usuarioActual = {
-              id: perfil.id, 
-              nombre: perfil.nombre,
-              usuario: perfil.username,
-              rol: perfil.rol,
-              eventoId: ""
-            };
-
-            setUsuarioLogueado(usuarioActual);
-            setRol(perfil.rol);
-            setPantalla(perfil.rol === "admin" ? "admin" : "participante");
-          }
-        } else {
-          setPantalla("login");
+        if (perfil) {
+          const usuarioActual = {
+            id: perfil.id, 
+            nombre: perfil.nombre,
+            usuario: perfil.username,
+            rol: perfil.rol,
+            eventoId: ""
+          };
+          setUsuarioLogueado(usuarioActual);
+          setRol(perfil.rol);
+          setPantalla(perfil.rol === "admin" ? "admin" : "participante");
         }
       } catch (e) {
-        console.error("Error al recuperar sesión persistente desde la DB:", e);
+        console.error("Error al recuperar perfil:", e);
         setPantalla("login");
       } finally {
         setComprobandoSesion(false);
       }
     }
-    verificarPersistencia();
+
+    // Escucha activamente si el token se refresca en segundo plano de manera infinita
+    const { data: { subscription } } = supabaseCliente.auth.onAuthStateChange((event, session) => {
+      if (session && session.user) {
+        cargarPerfilUsuario(session.user);
+      } else {
+        setPantalla("login");
+        setComprobandoSesion(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -180,22 +87,89 @@ async function cargarUsuarios() {
     }
   }, [rol]);
 
+  async function cargarEventos() {
+    try {
+      setCargandoEventos(true);
+      setErrorEventos("");
+      const datos = await obtenerDatos("eventos");
+      const eventosConvertidos = datos.map((evento) => ({
+        id: evento.id,
+        nombre: evento.nombre,
+        descripcion: evento.descripcion || "",
+        fecha: evento.fecha,
+        minimo: evento.presupuesto_min,
+        maximo: evento.presupuesto_max,
+        estado: evento.estado
+      }));
+      setEventos(eventosConvertidos);
+    } catch (error) {
+      setErrorEventos(error.message);
+    } finally {
+      setCargandoEventos(false);
+    }
+  }
+
+  async function cargarUsuarios() {
+    try {
+      setCargandoUsuarios(true);
+      setErrorUsuarios("");
+      const datos = await obtenerDatos("usuarios");
+      const usuariosConvertidos = datos.map((u) => {
+        let evId = "";
+        if (u.eventos && Array.isArray(u.eventos) && u.eventos.length > 0) {
+          evId = u.eventos[0].eventoId;
+        } else if (u.participaciones && u.participaciones.length > 0) {
+          evId = u.participaciones[0].evento_id;
+        }
+        return {
+          id: u.id,
+          nombre: u.nombre,
+          usuario: u.username || u.usuario || "", 
+          rol: u.rol || "participante",
+          eventoId: evId 
+        };
+      });
+      setUsuarios(usuariosConvertidos);
+    } catch (error) {
+      console.error("Error en cargarUsuarios:", error);
+      setErrorUsuarios(error.message);
+    } finally {
+      setCargandoUsuarios(false);
+    }
+  }
+
+  async function cargarReglas() {
+    try {
+      setCargandoReglas(true);
+      const datos = await obtenerDatos("reglas");
+      const reglasConvertidas = datos.map((regla) => {
+        const origen = usuarios.find((u) => String(u.id) === String(regla.origen_id));
+        const destino = usuarios.find((u) => String(u.id) === String(regla.destino_id));
+        return {
+          id: regla.id,
+          eventoId: regla.evento_id,
+          tipo: regla.tipo,
+          origenId: regla.origen_id,
+          origenNombre: origen ? origen.nombre : "Desconocido",
+          destinoId: regla.destino_id,
+          destinoNombre: destino ? destino.nombre : "Desconocido"
+        };
+      });
+      setReglas(reglasConvertidas);
+    } catch (error) {
+      console.error("Error al cargar las reglas: " + error.message);
+    } finally {
+      setCargandoReglas(false);
+    }
+  }
+
   async function iniciarSesion(e) {
     e.preventDefault();
-
     try {
       setCargandoLogin(true);
       setErrorLogin("");
-
-      const perfil = await autenticarUsuario(
-        usuario.trim(),
-        contrasena
-      );
-
-      const participacionActiva = perfil.participaciones?.find(
-        (p) => p.estado === "activo"
-      );
-
+      const perfil = await autenticarUsuario(usuario.trim(), contrasena);
+      const participacionActiva = perfil.participaciones?.find((p) => p.estado === "activo");
       const usuarioActual = {
         id: perfil.id,
         nombre: perfil.nombre,
@@ -203,16 +177,9 @@ async function cargarUsuarios() {
         rol: perfil.rol,
         eventoId: participacionActiva?.evento_id || ""
       };
-
       setUsuarioLogueado(usuarioActual);
       setRol(perfil.rol);
-
-      if (perfil.rol === "admin") {
-        setPantalla("admin");
-      } else {
-        setPantalla("participante");
-      }
-
+      setPantalla(perfil.rol === "admin" ? "admin" : "participante");
     } catch (error) {
       setErrorLogin(error.message || "No se pudo iniciar sesión.");
     } finally {
@@ -232,55 +199,37 @@ async function cargarUsuarios() {
     setRol("");
     setUsuarioLogueado(null);
     setPantalla("login");
-    if (comprobandoSesion) {
+  }
+
+  if (comprobandoSesion) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <p style={{ fontSize: "16px", color: "#666" }}>Cargando sesión segura...</p>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", backgroundColor: "#f7f0df" }}>
+        <p style={{ fontSize: "16px", color: "#302d32", fontWeight: "600" }}>Cargando sesión segura...</p>
       </div>
     );
   }
-  }
+
+  // LOGIN PANTALLA
+  const esPantallaAdmin = ["admin", "eventos", "usuarios", "sorteo", "reglasAdmin"].includes(pantalla);
 
   return (
     <div className="app">
       {pantalla === "login" && (
         <div className="login-container">
           <div className="login-card">
-            <div className="logo">🎁</div>
+            <img src={logoNavidad} alt="Logo Navideño" className="logo-imagen" />
             <h1>Merequetengue Navideño</h1>
-            <p className="subtitulo">TITULO</p>
-
             <form onSubmit={iniciarSesion}>
-              <label>¿Quien eres?</label>
-              <input
-                type="text"
-                value={usuario}
-                onChange={(e) => setUsuario(e.target.value)}
-                required
-              />
-
+              <label>¿Quién eres?</label>
+              <input type="text" value={usuario} onChange={(e) => setUsuario(e.target.value)} required />
               <label>Contraseña</label>
-                <div className="input-contrasena-container">
-                <input
-                  type={mostrarContrasena ? "text" : "password"}
-                  value={contrasena}
-                  onChange={(e) => setContrasena(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  className="boton-mostrar-ocultar"
-                  onClick={() => setMostrarContrasena(!mostrarContrasena)}
-                >
+              <div className="input-contrasena-container">
+                <input type={mostrarContrasena ? "text" : "password"} value={contrasena} onChange={(e) => setContrasena(e.target.value)} required />
+                <button type="button" className="boton-mostrar-ocultar" onClick={() => setMostrarContrasena(!mostrarContrasena)}>
                   {mostrarContrasena ? "🙈" : "👁️"}
                 </button>
               </div>
-              {errorLogin && (
-                <p style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>
-                  ⚠️ {errorLogin}
-                </p>
-              )}
-
+              {errorLogin && <p style={{ color: "red", fontSize: "14px", marginBottom: "10px" }}>⚠️ {errorLogin}</p>}
               <button type="submit" className="boton-login" disabled={cargandoLogin}>
                 {cargandoLogin ? "Validando..." : "Iniciar sesión"}
               </button>
@@ -290,8 +239,8 @@ async function cargarUsuarios() {
         </div>
       )}
 
-      {/* PANTALLA: PANEL DE ADMINISTRACIÓN */}
-      {pantalla === "admin" && (
+      {/* DISEÑO MAESTRO UNIFICADO DE ADMINISTRACIÓN */}
+      {esPantallaAdmin && (
         <div className="dashboard-theme">
           <header className="encabezado">
             <h2>Todo esta en tus manos</h2>
@@ -310,37 +259,67 @@ async function cargarUsuarios() {
           </header>
 
           <div className="contenido">
-            <h1>Panel de administración</h1>
-            <p>Bienvenida Grinch</p>
+            {pantalla === "admin" && (
+              <>
+                <h1>Panel de administración</h1>
+                <p>Bienvenida Grinch</p>
+                <div className="tarjetas">
+                  <div className="tarjeta">
+                    <h3>📅 Eventos</h3>
+                    <p>Crea eventos y configura todo</p>
+                    <button onClick={() => setPantalla("eventos")} className="boton-dashboard">Gestionar eventos</button>
+                  </div>
+                  <div className="tarjeta">
+                    <h3>👥 Usuarios</h3>
+                    <p>Crea cuenta y asigna</p>
+<button onClick={() => setPantalla("usuarios")} className="boton-dashboard">Gestionar usuarios</button>
+                  </div>
 
-            <div className="tarjetas">
-              <div className="tarjeta">
-                <h3>📅 Eventos</h3>
-                <p>Crea eventos y configura todo</p>
-                <button onClick={() => setPantalla("eventos")} className="boton-dashboard">
-                  Gestionar eventos
-                </button>
-              </div>
+                  <div className="tarjeta">
+                    <h3>🎲 Control de sorteo</h3>
+                    <p>Revisa participantes, reglas y asignaciones</p>
+                    <button onClick={() => setPantalla("sorteo")} className="boton-dashboard">Abrir control</button>
+                    <button onClick={() => setPantalla("reglasAdmin")} className="boton-dashboard">Reglas del sorteo</button>
+                  </div>
+                </div>
+              </>
+            )}
 
-              <div className="tarjeta">
-                <h3>👥 Usuarios</h3>
-                <p>Crea cuenta y asigna</p>
-                <button onClick={() => setPantalla("usuarios")} className="boton-dashboard">
-                  Gestionar usuarios
-                </button>
-              </div>
+            {pantalla === "eventos" && (
+              <>
+                {cargandoEventos && <p>Cargando eventos...</p>}
+                {errorEventos && (
+                  <div style={{ color: "red", padding: "10px" }}>
+                    ⚠️ Error: {errorEventos}
+                  </div>
+                )}
+                {!cargandoEventos && !errorEventos && (
+                  <EventosAdmin eventos={eventos} setEventos={setEventos} volver={() => setPantalla("admin")} />
+                )}
+              </>
+            )}
 
-              <div className="tarjeta">
-                <h3>🎲 Control de sorteo</h3>
-                <p>Revisa participantes, reglas y asignaciones</p>
-                <button onClick={() => setPantalla("sorteo")} className="boton-dashboard">
-                  Abrir control
-                </button>
-                <button onClick={() => setPantalla("reglasAdmin")} className="boton-dashboard">
-                  Reglas del sorteo
-                </button>
-              </div>
-            </div>
+            {pantalla === "usuarios" && (
+              <>
+                {cargandoUsuarios && <p>Cargando lista de usuarios...</p>}
+                {errorUsuarios && (
+                  <div style={{ color: "red", padding: "10px" }}>
+                    ⚠️ Error: {errorUsuarios}
+                  </div>
+                )}
+                {!cargandoUsuarios && !errorUsuarios && (
+                  <UsuariosAdmin usuarios={usuarios} setUsuarios={setUsuarios} eventos={eventos} volver={() => setPantalla("admin")} />
+                )}
+              </>
+            )}
+
+            {pantalla === "sorteo" && (
+              <ControlSorteo usuarios={usuarios} eventos={eventos} volver={() => setPantalla("admin")} />
+            )}
+
+            {pantalla === "reglasAdmin" && (
+              <ReglasAdmin usuarios={usuarios} eventos={eventos} reglas={reglas} setReglas={setReglas} volver={() => setPantalla("admin")} />
+            )}
           </div>
         </div>
       )}
@@ -354,15 +333,13 @@ async function cargarUsuarios() {
               {rol === "admin" && (
                 <button 
                   onClick={() => setPantalla("admin")} 
-                  className="boton-dashboard"
+                  className="boton-dashboard" 
                   style={{ width: "auto", padding: "10px 20px", background: "#b59b73" }}
                 >
                   ⚙️ Volver a Admin
                 </button>
               )}
-              <button onClick={cerrarSesion} className="boton-secundario">
-                Cerrar sesión
-              </button>
+              <button onClick={cerrarSesion} className="boton-secundario">Cerrar sesión</button>
             </div>
           </header>
 
@@ -376,113 +353,36 @@ async function cargarUsuarios() {
             <div className="tarjetas">
               <div className="tarjeta">
                 <h3>🎁 Mi amigo secreto</h3>
-                <p>Cuando el evento inicie podrás ver quien es tu amigo secreto</p>
-                <button onClick={() => setPantalla("revelacion")} className="boton-dashboard">
-                  Ver mi amigo secreto
-                </button>
+                <p>Cuando el evento inicie podrás ver quién es tu amigo secreto</p>
+                <button onClick={() => setPantalla("revelacion")} className="boton-dashboard">Ver mi amigo secreto</button>
               </div>
 
               <div className="tarjeta">
                 <h3>Wishlist 🪄</h3>
                 <p>Comienza con tu carta a Santa</p>
-                <button onClick={() => setPantalla("wishlist")} className="boton-dashboard">
-                  Editar Wishlist
-                </button>
+                <button onClick={() => setPantalla("wishlist")} className="boton-dashboard">Editar Wishlist</button>
               </div>
 
               <div className="tarjeta">
                 <h3>📜 Reglas del evento</h3>
-                <p>Consulta las condiciones, fechas y mas del intercambio.</p>
-                <button onClick={() => setPantalla("reglas")} className="boton-dashboard">
-                  Ver reglas
-                </button>
+                <p>Consulta las condiciones, fechas y más del intercambio.</p>
+                <button onClick={() => setPantalla("reglas")} className="boton-dashboard">Ver reglas</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {pantalla === "eventos" && (
-        <div className="dashboard-theme">
-          <div className="contenido">
-            {cargandoEventos && <p>Cargando eventos...</p>}
-                        {errorEventos && (
-              <div style={{ color: "red", padding: "10px" }}>
-                ⚠️ Error: {errorEventos}
-              </div>
-            )}
-            
-            {!cargandoEventos && !errorEventos && (
-              <EventosAdmin 
-                eventos={eventos} 
-                setEventos={setEventos} 
-                volver={() => setPantalla("admin")} 
-              />
-            )}
-          </div>
-        </div>
-      )}
-
-      {pantalla === "usuarios" && (
-        <div className="dashboard-theme">
-          <div className="contenido">
-            {cargandoUsuarios && <p>Cargando lista de usuarios...</p>}
-            {errorUsuarios && (
-              <div style={{ color: "red", padding: "10px" }}>
-                ⚠️ Error: {errorUsuarios}
-              </div>
-            )}
-            {!cargandoUsuarios && !errorUsuarios && (
-              <UsuariosAdmin 
-                usuarios={usuarios} 
-                setUsuarios={setUsuarios} 
-                eventos={eventos} 
-                volver={() => setPantalla("admin")} 
-              />
-            )}
-          </div>
-        </div>
-      )}
-
-      {pantalla === "sorteo" && (
-        <ControlSorteo 
-          usuarios={usuarios} 
-          eventos={eventos} 
-          volver={() => setPantalla("admin")} 
-        />
-      )}
-
-      {pantalla === "reglasAdmin" && (
-        <ReglasAdmin 
-          usuarios={usuarios} 
-          eventos={eventos} 
-          reglas={reglas} 
-          setReglas={setReglas} 
-          volver={() => setPantalla("admin")} 
-        />
-      )}
-
       {pantalla === "wishlist" && (
-        <Wishlist 
-          usuarioId={usuarioLogueado?.id} 
-          eventoId={usuarioLogueado?.eventoId || ""} 
-          volver={() => setPantalla("participante")} 
-        />
+        <Wishlist usuarioId={usuarioLogueado?.id} eventoId={usuarioLogueado?.eventoId || ""} volver={() => setPantalla("participante")} />
       )}
 
       {pantalla === "reglas" && (
-        <Reglas 
-          eventoId={usuarioLogueado?.eventoId || ""} 
-          volver={() => setPantalla("participante")} 
-        />
+        <Reglas eventoId={usuarioLogueado?.eventoId || ""} volver={() => setPantalla("participante")} />
       )}
 
       {pantalla === "revelacion" && (
-        <MiAmigoSecreto 
-          usuarioId={usuarioLogueado?.id} 
-          eventoId={usuarioLogueado?.eventoId || ""} 
-          volver={() => setPantalla("participante")} 
-        />
+        <MiAmigoSecreto usuarioId={usuarioLogueado?.id} eventoId={usuarioLogueado?.eventoId || ""} volver={() => setPantalla("participante")} />
       )}
     </div>
   );
