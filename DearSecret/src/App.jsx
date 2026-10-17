@@ -285,6 +285,7 @@ async function cargarUsuarios() {
                 {cargandoLogin ? "Validando..." : "Iniciar sesión"}
               </button>
             </form>
+            <p className="nota">Pórtate bien… el Grinch podría estar mirando</p>
           </div>
         </div>
       )}
