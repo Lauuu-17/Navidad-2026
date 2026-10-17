@@ -1,5 +1,4 @@
-
-import supabase from "./supabase.js";
+import { supabase, supabaseAdmin } from "./supabase.js";
 
 function respuestaError(mensaje, estado) {
   return new Response(
@@ -29,7 +28,7 @@ export async function verificarSesion(request) {
       error: respuestaError("Token de acceso vacío.", 401)
     };
   }
-
+  
   const { data, error } = await supabase.auth.getUser(token);
 
   if (error || !data.user) {
@@ -38,15 +37,15 @@ export async function verificarSesion(request) {
     };
   }
 
-  const { data: perfil, error: errorPerfil } = await supabase
+  const { data: perfil, error: errorPerfil } = await supabaseAdmin
     .from("usuarios")
     .select("id, nombre, username, rol, auth_user_id")
-    .eq("auth_user_id", data.user.id)
+    .eq("id", data.user.id)
     .maybeSingle();
 
   if (errorPerfil) {
     return {
-      error: respuestaError("No se pudo verificar el perfil.", 500)
+      error: respuestaError(`Error en DB de Supabase: ${errorPerfil.message} (Código: ${errorPerfil.code})`, 500)
     };
   }
 
