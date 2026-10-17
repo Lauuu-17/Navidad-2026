@@ -1,20 +1,20 @@
 {
 	"geolocation": {
 		"data": {
-			"city": "Lima",
+			"city": "Arequipa",
 			"country": {
 				"code": "PE",
 				"name": "Peru"
 			},
 			"subdivision": {
-				"code": "LMA",
-				"name": "Lima Province"
+				"code": "ARE",
+				"name": "Arequipa"
 			},
 			"timezone": "America/Lima",
-			"latitude": -12.046,
-			"longitude": -77.0305
+			"latitude": -16.4014,
+			"longitude": -71.5343
 		},
-		"timestamp": 1792172736615
+		"timestamp": 1792259186321
 	},
-	"dbConnectionString": "postgres://postgres@localhost:53810/postgres"
+	"dbConnectionString": "postgres://postgres@localhost:49675/postgres"
 }

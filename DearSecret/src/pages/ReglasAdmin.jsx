@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { obtenerDatos, enviarDatos, eliminarDatos } from "../services/api";
+import { enviarDatos, eliminarDatos } from "../services/api";
 
-function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
+function ReglasAdmin({ usuarios, eventos, reglas, setReglas, guardandoRegla, setGuardandoRegla, volver }) {
   const [eventoId, setEventoId] = useState(
     eventos.length > 0 ? String(eventos[0].id) : ""
   );
@@ -17,6 +17,9 @@ function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
   async function agregarRegla(e) {
     e.preventDefault();
 
+    // 1. CONTROL DE CONCURRENCIA
+    if (guardandoRegla) return;
+
     if (!usuarioOrigen || !usuarioDestino) {
       alert("Selecciona los dos participantes.");
       return;
@@ -28,6 +31,8 @@ function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
     }
 
     try {
+      setGuardandoRegla(true); 
+
       const nuevaRegla = await enviarDatos("reglas", {
         eventoId: eventoId,
         tipo: tipoRegla,
@@ -43,9 +48,9 @@ function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
         eventoId: nuevaRegla.evento_id,
         tipo: nuevaRegla.tipo,
         origenId: nuevaRegla.origen_id,
-        origenNombre: origen ? origen.nombre : "Desconocido",
+        origenNombre: origen ? origen.nombre : "Cargando...",
         destinoId: nuevaRegla.destino_id,
-        destinoNombre: destino ? destino.nombre : "Desconocido"
+        destinoNombre: destino ? destino.nombre : "Cargando..."
       };
 
       setReglas((anteriores) => [reglaConvertida, ...anteriores]);
@@ -56,6 +61,8 @@ function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
 
     } catch (error) {
       alert("No se pudo guardar la regla: " + error.message);
+    } finally {
+      setGuardandoRegla(false);
     }
   }
 
@@ -86,7 +93,7 @@ function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
           <h1>⚙️ Reglas del sorteo</h1>
           <p>
             Configura las restricciones que utilizará el sistema
-            para generar las asignaciones (TryHack Me).
+            para generar las asignaciones.
           </p>
         </div>
       </div>
@@ -165,7 +172,10 @@ function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
               {tipoRegla === "manual" && <p>A regalará obligatoriamente a B. Esta pareja quedará fijada antes del sorteo automático.</p>}
             </div>
 
-            <button type="submit">+ Agregar regla</button>
+            {/* 2. CONTROL VISUAL */}
+            <button type="submit" disabled={guardandoRegla}>
+              {guardandoRegla ? "Guardando restricción..." : "+ Agregar regla"}
+            </button>
           </form>
         </div>
       </div>
@@ -190,6 +200,7 @@ function ReglasAdmin({ usuarios, eventos, reglas, setReglas, volver }) {
                 <button
                   className="boton-tabla"
                   onClick={() => eliminarRegla(regla.id)}
+                  disabled={guardandoRegla}
                 >
                   Eliminar
                 </button>

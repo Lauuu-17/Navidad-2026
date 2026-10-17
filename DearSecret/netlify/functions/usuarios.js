@@ -36,16 +36,20 @@ export default async (request, context) => {
       );
     }
 
-    const resultado = data.map((usuario) => ({
-      id: usuario.id,
-      nombre: usuario.nombre,
-      usuario: usuario.username,
-      rol: usuario.rol,
-      eventos: usuario.participaciones.map((p) => ({
-        eventoId: p.evento_id,
-        estado: p.estado
-      }))
-    }));
+    const resultado = data.map((usuario) => {
+      const listaParticipaciones = usuario.participaciones || [];
+      return {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        usuario: usuario.username,
+        rol: usuario.rol,
+        participaciones: listaParticipaciones,
+        eventos: listaParticipaciones.map((p) => ({
+          eventoId: p.evento_id,
+          estado: p.estado
+        }))
+      };
+    });
 
     return new Response(
       JSON.stringify(resultado),
@@ -171,5 +175,4 @@ export default async (request, context) => {
       });
     }
   }
-
 };

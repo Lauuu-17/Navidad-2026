@@ -12,6 +12,7 @@ import { iniciarSesion as autenticarUsuario, cerrarSesion as cerrarSesionSupabas
 import supabaseCliente from "./services/supabaseCliente";
 import logoNavidad from "./assets/logo-navidad.png"; 
 
+
 function App() {
   const [usuario, setUsuario] = useState(""); 
   const [contrasena, setContrasena] = useState("");
@@ -23,6 +24,7 @@ function App() {
   const [cargandoLogin, setCargandoLogin] = useState(false);
   const [usuarios, setUsuarios] = useState([]);
   const [comprobandoSesion, setComprobandoSesion] = useState(true);
+  const [guardandoRegla, setGuardandoRegla] = useState(false);
 
   const [eventos, setEventos] = useState([]);
   const [cargandoEventos, setCargandoEventos] = useState(true);
@@ -78,14 +80,49 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (rol === "admin") {
-      cargarEventos();
-      cargarUsuarios();
-      cargarReglas();
-    } else if (rol === "participante") {
-      cargarEventos(); 
+    async function cargarDatosSecuenciales() {
+      if (rol === "admin") {
+        try {
+          setCargandoUsuarios(true);
+          setErrorUsuarios("");
+          
+          // 1. Forzamos a que primero se resuelvan y guarden los usuarios en memoria
+          const datosUsuarios = await obtenerDatos("usuarios");
+          const usuariosConvertidos = datosUsuarios.map((u) => {
+            let evId = "";
+            if (u.participaciones && u.participaciones.length > 0) {
+              evId = u.participaciones[0].evento_id;
+            }
+            return {
+              id: u.id,
+              nombre: u.nombre,
+              usuario: u.username || u.usuario || "", 
+              rol: u.rol || "participante",
+              eventoId: evId 
+            };
+          });
+          setUsuarios(usuariosConvertidos);
+          
+          // 2. Cargamos los eventos de fondo
+          await cargarEventos();
+
+          // 3. Pasamos los usuarios en tiempo real a las reglas para evitar el desfase asíncrono
+          await cargarReglas(usuariosConvertidos);
+          
+        } catch (error) {
+          console.error("Error en carga inicial:", error);
+          setErrorUsuarios(error.message);
+        } finally {
+          setCargandoUsuarios(false);
+        }
+      } else if (rol === "participante") {
+        cargarEventos(); 
+      }
     }
+    
+    cargarDatosSecuenciales();
   }, [rol]);
+
 
   async function cargarEventos() {
     try {
@@ -113,14 +150,20 @@ function App() {
     try {
       setCargandoUsuarios(true);
       setErrorUsuarios("");
+
       const datos = await obtenerDatos("usuarios");
+
       const usuariosConvertidos = datos.map((u) => {
         let evId = "";
+        
         if (u.eventos && Array.isArray(u.eventos) && u.eventos.length > 0) {
-          evId = u.eventos[0].eventoId;
-        } else if (u.participaciones && u.participaciones.length > 0) {
-          evId = u.participaciones[0].evento_id;
+          const activo = u.eventos.find(e => e.estado === "activo") || u.eventos[0];
+          evId = activo.eventoId;
+        } else if (u.participaciones && Array.isArray(u.participaciones) && u.participaciones.length > 0) {
+          const activa = u.participaciones.find(p => p.estado === "activo") || u.participaciones[0];
+          evId = activa.evento_id;
         }
+
         return {
           id: u.id,
           nombre: u.nombre,
@@ -129,6 +172,7 @@ function App() {
           eventoId: evId 
         };
       });
+
       setUsuarios(usuariosConvertidos);
     } catch (error) {
       console.error("Error en cargarUsuarios:", error);
@@ -138,23 +182,27 @@ function App() {
     }
   }
 
-  async function cargarReglas() {
+  async function cargarReglas(usuariosActualizados = null) {
     try {
       setCargandoReglas(true);
       const datos = await obtenerDatos("reglas");
+      const listaUsuarios = usuariosActualizados || usuarios;
+
       const reglasConvertidas = datos.map((regla) => {
-        const origen = usuarios.find((u) => String(u.id) === String(regla.origen_id));
-        const destino = usuarios.find((u) => String(u.id) === String(regla.destino_id));
+        const origen = listaUsuarios.find((u) => String(u.id) === String(regla.origen_id));
+        const destino = listaUsuarios.find((u) => String(u.id) === String(regla.destino_id));
+
         return {
           id: regla.id,
           eventoId: regla.evento_id,
           tipo: regla.tipo,
           origenId: regla.origen_id,
-          origenNombre: origen ? origen.nombre : "Desconocido",
+          origenNombre: origen ? origen.nombre : "Cargando...",
           destinoId: regla.destino_id,
-          destinoNombre: destino ? destino.nombre : "Desconocido"
+          destinoNombre: destino ? destino.nombre : "Cargando..."
         };
       });
+      
       setReglas(reglasConvertidas);
     } catch (error) {
       console.error("Error al cargar las reglas: " + error.message);
@@ -162,6 +210,7 @@ function App() {
       setCargandoReglas(false);
     }
   }
+
 
   async function iniciarSesion(e) {
     e.preventDefault();
@@ -318,7 +367,15 @@ function App() {
             )}
 
             {pantalla === "reglasAdmin" && (
-              <ReglasAdmin usuarios={usuarios} eventos={eventos} reglas={reglas} setReglas={setReglas} volver={() => setPantalla("admin")} />
+              <ReglasAdmin 
+                usuarios={usuarios} 
+                eventos={eventos} 
+                reglas={reglas} 
+                setReglas={setReglas} 
+                guardandoRegla={guardandoRegla}
+                setGuardandoRegla={setGuardandoRegla}
+                volver={() => setPantalla("admin")} 
+              />
             )}
           </div>
         </div>
