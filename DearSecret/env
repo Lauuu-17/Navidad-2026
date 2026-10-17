@@ -1,0 +1,4 @@
+SUPABASE_URL=https://qolbtmetejpkwcfiisfe.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_O2ShYwJ_ZV8RAvuLi8gojw_xTNEMQ9_
+VITE_SUPABASE_URL=https://qolbtmetejpkwcfiisfe.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_WI18cypjKzqtPkzx1lp9tw_VM5HNksG
