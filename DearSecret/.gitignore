@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Local Netlify folder
-=======
 node_modules/
 dist/
 dist-ssr
@@ -12,5 +9,4 @@ dist-ssr
 .env.*
 !.env.example
 
->>>>>>> 0f28cce8cd20ce4d979881de63beda9e1d074625
 .netlify

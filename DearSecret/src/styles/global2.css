@@ -1047,3 +1047,13 @@ button, input, textarea {
   border-radius: 4px;
   text-align: left;
 }
+/* Notas personalizadas del administrador dentro de las reglas */
+.nota-organizador-box {
+  white-space: pre-line;
+  background: #f7f1e4;
+  padding: 15px;
+  border-radius: 4px;
+  border-left: 4px solid #b59b73;
+  color: #655345;
+  margin-top: 8px;
+}
