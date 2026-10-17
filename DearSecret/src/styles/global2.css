@@ -322,15 +322,14 @@ button, input, textarea {
   }
 }
 :root {
-  --bg-principal: #f4eae1;    /* Fondo de la interfaz de la calculadora */
-  --bg-card: #fdfaf2;            /* Fondo beige claro de las tarjetas */
-  --bg-card-hover: #f7f1e4;      /* Efecto hover suave para interactividad */
-  --borde-contenedor: #dfd5c6;  /* Bordes dorados/tierra suaves */
-  --texto-oscuro: #655345;    /* Color de texto principal elegante */
-  --texto-secundario: #a39382;  /* Subtítulos y descripciones cortas */
-  --detalles-dorados: #b59b73;  /* Color para los iconos "+" y bordes destacados */
-  --tag-nuevo: #ff5a5a;          /* Color del indicador "Nuevo" (si se requiere) */
-}
+  --bg-principal: #F7F0DF;
+  --bg-card: #FFFCF5;
+  --bg-card-hover: #F1E8D4;
+  --borde-contenedor: #E4DCCB;
+  --texto-oscuro: #302D32;
+  --texto-secundario: #6B625F;
+  --detalles-dorados: #B8D943;
+  --tag-nuevo: #583B50;}
 .contenedor-calculadora {
   background-color: var(--bg-principal);
   padding: 40px 20px;
