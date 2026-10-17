@@ -55,7 +55,9 @@ export default async (request, context) => {
                 evento_id,
                 wishlists (
                   descripcion,
-                  regalo
+                  regalo,
+                  caricatura,
+                  enlace
                 )
               )
             )
@@ -74,16 +76,29 @@ export default async (request, context) => {
           (p) => String(p.evento_id) === String(eventoId)
         );
 
-        let contenidoWishlist = "";
+        let wishlistEstructurada = {
+          regalos: [],
+          caricaturas: [],
+          enlaces: [],
+          descripcion: ""
+        };
+
         if (partEvento && partEvento.wishlists) {
           const wl = Array.isArray(partEvento.wishlists) ? partEvento.wishlists[0] : partEvento.wishlists;
-          contenidoWishlist = wl?.descripcion || wl?.regalo || "";
+          if (wl) {
+            try { wishlistEstructurada.regalos = wl.regalo ? JSON.parse(wl.regalo) : []; } catch { wishlistEstructurada.regalos = wl.regalo ? [wl.regalo] : []; }
+            try { wishlistEstructurada.caricaturas = wl.caricatura ? JSON.parse(wl.caricatura) : []; } catch { wishlistEstructurada.caricaturas = wl.caricatura ? [wl.caricatura] : []; }
+            try { wishlistEstructurada.enlaces = wl.enlace ? JSON.parse(wl.enlace) : []; } catch { wishlistEstructurada.enlaces = wl.enlace ? [wl.enlace] : []; }
+            wishlistEstructurada.descripcion = wl.descripcion || "";
+          }
         }
 
         return responder({
           destinatario_nombre: perfilDestinatario.nombre,
-          destinatario_wishlist: contenidoWishlist || "Esta persona aún no ha detallado sus gustos en su Wishlist. ¡Sorpréndela!"
+          destinatario_wishlist: wishlistEstructurada
         }, 200);
+
+
 
       } catch (err) {
         return responder({ error: "Error interno: " + err.message }, 500);
