@@ -105,13 +105,22 @@ async function cargarUsuarios() {
     try {
       setCargandoReglas(true);
       const datos = await obtenerDatos("reglas");
-      const reglasConvertidas = datos.map((regla) => ({
-        id: regla.id,
-        eventoId: regla.evento_id,
-        tipo: regla.tipo,
-        origenId: regla.origen_id,
-        destinoId: regla.destino_id
-      }));
+      
+      const reglasConvertidas = datos.map((regla) => {
+        const origen = usuarios.find((u) => String(u.id) === String(regla.origen_id));
+        const destino = usuarios.find((u) => String(u.id) === String(regla.destino_id));
+
+        return {
+          id: regla.id,
+          eventoId: regla.evento_id,
+          tipo: regla.tipo,
+          origenId: regla.origen_id,
+          origenNombre: origen ? origen.nombre : "Desconocido",
+          destinoId: regla.destino_id,
+          destinoNombre: destino ? destino.nombre : "Desconocido"
+        };
+      });
+      
       setReglas(reglasConvertidas);
     } catch (error) {
       console.error("Error al cargar las reglas: " + error.message);
@@ -119,6 +128,7 @@ async function cargarUsuarios() {
       setCargandoReglas(false);
     }
   }
+
 
   useEffect(() => {
     async function verificarPersistencia() {
@@ -289,9 +299,18 @@ async function cargarUsuarios() {
         <div className="dashboard-theme">
           <header className="encabezado">
             <h2>Todo esta en tus manos</h2>
-            <button onClick={cerrarSesion} className="boton-secundario">
-              Cerrar sesión
-            </button>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button 
+                onClick={() => setPantalla("participante")} 
+                className="boton-secundario"
+                style={{ borderColor: "#b59b73", color: "#655345" }}
+              >
+                👁️ Ver Como Participante
+              </button>
+              <button onClick={cerrarSesion} className="boton-secundario">
+                Cerrar sesión
+              </button>
+            </div>
           </header>
 
           <div className="contenido">
@@ -335,9 +354,20 @@ async function cargarUsuarios() {
         <div className="dashboard-theme">
           <header className="encabezado">
             <h2>Pasando Navidad desde 2016 🌟</h2>
-            <button onClick={cerrarSesion} className="boton-secundario">
-              Cerrar sesión
-            </button>
+            <div style={{ display: "flex", gap: "10px" }}>
+              {rol === "admin" && (
+                <button 
+                  onClick={() => setPantalla("admin")} 
+                  className="boton-dashboard"
+                  style={{ width: "auto", padding: "10px 20px", background: "#b59b73" }}
+                >
+                  ⚙️ Volver a Admin
+                </button>
+              )}
+              <button onClick={cerrarSesion} className="boton-secundario">
+                Cerrar sesión
+              </button>
+            </div>
           </header>
 
           <div className="contenido">
@@ -366,6 +396,7 @@ async function cargarUsuarios() {
 
               <div className="tarjeta">
                 <h3>📜 Reglas del evento</h3>
+                <p>Consulta las condiciones, fechas y mas del intercambio.</p>
                 <button onClick={() => setPantalla("reglas")} className="boton-dashboard">
                   Ver reglas
                 </button>
@@ -375,7 +406,6 @@ async function cargarUsuarios() {
         </div>
       )}
 
-      {/* VISTAS ELEMENTOS  */}
       {pantalla === "eventos" && (
         <div className="dashboard-theme">
           <div className="contenido">

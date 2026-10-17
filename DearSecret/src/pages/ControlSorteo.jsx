@@ -12,6 +12,7 @@ function ControlSorteo({ usuarios, eventos, volver }) {
   const [sorteos, setSorteos] = useState([]);
   const [cargandoSorteos, setCargandoSorteos] = useState(false);
   const [guardandoSorteo, setGuardandoSorteo] = useState(false);
+  const [cargandoInicial, setCargandoInicial] = useState(true);
 
   const participantes = usuarios.filter(
     (persona) => String(persona.eventoId) === String(eventoId)
@@ -28,14 +29,16 @@ function ControlSorteo({ usuarios, eventos, volver }) {
       console.error("Error al cargar sorteos: " + error.message);
     } finally {
       setCargandoSorteos(false);
+      setCargandoInicial(false);
     }
   }
 
   useEffect(() => {
     cargarSorteos();
-  }, []);
+  }, [eventoId]); 
 
-  function sincronizarEstadoConDB(idDelEvento, listaSorteos) {
+
+  function sincronizarEstadoConDB(idDelEvento, listaSorteos, participantesActuales = participantes) {
     if (!listaSorteos || listaSorteos.length === 0) {
       setEstadoSorteo("No iniciado");
       setAsignadosIds([]);
@@ -49,10 +52,10 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     if (sorteoExistente) {
       if (sorteoExistente.estado === "pendiente") {
         setEstadoSorteo("Pendiente de revisión");
-        setAsignadosIds(participantes.map((persona) => persona.id));
+        setAsignadosIds(participantesActuales.map((persona) => persona.id));
       } else if (sorteoExistente.estado === "publicado") {
         setEstadoSorteo("Publicado");
-        setAsignadosIds(participantes.map((persona) => persona.id));
+        setAsignadosIds(participantesActuales.map((persona) => persona.id));
       } else {
         setEstadoSorteo("No iniciado");
         setAsignadosIds([]);
@@ -63,7 +66,6 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     }
   }
 
-
   async function crearSorteo() {
     if (!eventoId) {
       alert("Selecciona un evento válido.");
@@ -72,17 +74,13 @@ function ControlSorteo({ usuarios, eventos, volver }) {
 
     try {
       setGuardandoSorteo(true);
-      const nuevoSorteo = await enviarDatos("sorteo", {
+      await enviarDatos("sorteo", {
         eventoId: eventoId
       });
 
-      const listaActualizada = [nuevoSorteo, ...sorteos];
-      setSorteos(listaActualizada);
+      await cargarSorteos();
 
-      alert("¡Sorteo creado con éxito en Supabase!");
-      setEstadoSorteo("Pendiente de revisión");
-      setAsignadosIds(participantes.map((persona) => persona.id));
-
+      alert("¡Sorteo base sincronizado con éxito!");
     } catch (error) {
       alert("No se pudo crear el sorteo en la base de datos: " + error.message);
     } finally {
@@ -92,7 +90,12 @@ function ControlSorteo({ usuarios, eventos, volver }) {
 
   function cambiarEvento(nuevoEventoId) {
     setEventoId(nuevoEventoId);
-    sincronizarEstadoConDB(nuevoEventoId, sorteos);
+    
+    const nuevosParticipantes = usuarios.filter(
+      (persona) => String(persona.eventoId) === String(nuevoEventoId)
+    );
+
+    sincronizarEstadoConDB(nuevoEventoId, sorteos, nuevosParticipantes);
   }
 
   function iniciarSorteo() {
@@ -131,7 +134,6 @@ function ControlSorteo({ usuarios, eventos, volver }) {
     }
   }
 
-
   async function publicarSorteo() {
     if (!eventoId) return;
 
@@ -141,14 +143,16 @@ function ControlSorteo({ usuarios, eventos, volver }) {
         eventoId: eventoId,
         ejecutarEmparejamiento: true
       });
-      setEstadoSorteo("Publicado");
+
+      await cargarSorteos();
+
+      alert("🎉 ¡Sorteo oficial generado y publicado exitosamente!");
     } catch (error) {
       alert("Error al procesar el sorteo oficial: " + error.message);
     } finally {
       setCargandoSorteos(false);
     }
   }
-
 
   const eventoActual = eventos.find(
     (evento) => String(evento.id) === String(eventoId)
@@ -193,6 +197,12 @@ function ControlSorteo({ usuarios, eventos, volver }) {
             Fecha: {eventoActual.fecha} · Presupuesto: S/{" "}
             {eventoActual.minimo} - S/ {eventoActual.maximo}
           </p>
+        )}
+
+        {estadoSorteo !== "No iniciado" && (
+          <div className="alerta-sorteo-existente">
+            <strong>Aviso del sistema:</strong> Este evento ya cuenta con un registro de sorteo guardado en Supabase. Si modificas las restricciones o participantes en las otras pestañas
+          </div>
         )}
       </div>
 
@@ -244,44 +254,52 @@ function ControlSorteo({ usuarios, eventos, volver }) {
       </div>
 
       <div className="acciones-sorteo">
-        {estadoSorteo === "No iniciado" && (
+        {cargandoInicial ? (
+          <p>🔄 Sincronizando estado del sorteo...</p>
+        ) : (
           <>
-            <button
-              className="boton-secundario"
-              onClick={iniciarSorteo}
-              disabled={participantes.length < 2}
-            >
-              🎲 Ejecutar prueba local
-            </button>
+            {estadoSorteo === "No iniciado" && (
+              <>
+                <button
+                  className="boton-secundario"
+                  onClick={iniciarSorteo}
+                  disabled={participantes.length < 2}
+                >
+                  🎲 Ejecutar prueba local
+                </button>
+                <button 
+                  onClick={crearSorteo} 
+                  disabled={participantes.length < 2 || guardandoSorteo}
+                >
+                  {guardandoSorteo ? "Creando..." : "Crear sorteo oficial"}
+                </button>
+              </>
+            )}
 
-            <button 
-              onClick={crearSorteo} 
-              disabled={participantes.length < 2 || guardandoSorteo}
-            >
-              {guardandoSorteo ? "Creando..." : "Crear sorteo oficial"}
-            </button>
+            {estadoSorteo === "Pendiente de revisión" && (
+              <>
+                <button className="boton-secundario" onClick={reiniciarSorteo}>
+                  💥 Eliminar y Reiniciar Sorteo
+                </button>
+                <button onClick={publicarSorteo}>
+                  😁 Aprobar y Publicar
+                </button>
+              </>
+            )}
+
+            {estadoSorteo === "Publicado" && (
+              <div className="publicado-layout">
+                <div className="sorteo-publicado">
+                  🔒 Sorteo oficial activo y publicado. Las parejas se encuentran distribuidas en los paneles de cada participante.
+                </div>
+                <div className="publicado-alineacion">
+                  <button className="boton-cancelar-sorteo" onClick={reiniciarSorteo}>
+                    ⚠️ Cancelar Sorteo y Reconfigurar Reglas
+                  </button>
+                </div>
+              </div>
+            )}
           </>
-        )}
-
-        {estadoSorteo === "Pendiente de revisión" && (
-          <>
-            <button
-              className="boton-secundario"
-              onClick={reiniciarSorteo}
-            >
-              ↻ Reiniciar vista
-            </button>
-
-            <button onClick={publicarSorteo}>
-              ✓ Aprobar y Publicar
-            </button>
-          </>
-        )}
-
-        {estadoSorteo === "Publicado" && (
-          <div className="sorteo-publicado">
-            ¡Sorteo oficial publicado! Las parejas ya se encuentran disponibles en los paneles.
-          </div>
         )}
       </div>
     </div>

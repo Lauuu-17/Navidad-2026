@@ -3,15 +3,51 @@ import { enviarDatos } from "../services/api";
 
 function EventosAdmin({ eventos, setEventos, volver }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [idEdicion, setIdEdicion] = useState(null);
 
   const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
   const [fecha, setFecha] = useState("");
   const [minimo, setMinimo] = useState("30");
   const [maximo, setMaximo] = useState("60");
-   const [guardando, setGuardando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
 
-  async function crearEvento(e) {
+  const [msgOrganizador, setMsgOrganizador] = useState("");
+  const [msgSecreto, setMsgSecreto] = useState("");
+  const [msgWishlist, setMsgWishlist] = useState("");
+
+  function abrirEditar(evento) {
+    setIdEdicion(evento.id);
+    setNombre(evento.nombre);
+    setFecha(evento.fecha);
+    setMinimo(String(evento.minimo));
+    setMaximo(String(evento.maximo));
+
+    try {
+      const configDinamica = JSON.parse(evento.descripcion);
+      setMsgOrganizador(configDinamica.organizador || "");
+      setMsgSecreto(configDinamica.secreto || "");
+      setMsgWishlist(configDinamica.wishlist || "");
+    } catch {
+      setMsgOrganizador(evento.descripcion || "");
+      setMsgSecreto("No reveles públicamente quién te fue asignado. La idea es mantener la magia de la sorpresa hasta el momento indicado.");
+      setMsgWishlist("Recuerda rellenar tu wishlist para darle pistas clave a tu amigo secreto sobre tus gustos personales.");
+    }
+    setMostrarFormulario(true);
+  }
+
+  function abrirCrear() {
+    setIdEdicion(null);
+    setNombre("");
+    setFecha("");
+    setMinimo("30");
+    setMaximo("60");
+    setMsgOrganizador("");
+    setMsgSecreto("No reveles públicamente quién te fue asignado. La idea es mantener la magia de la sorpresa hasta el momento indicado.");
+    setMsgWishlist("Recuerda rellenar tu wishlist para darle pistas clave a tu amigo secreto sobre tus gustos personales.");
+    setMostrarFormulario(true);
+  }
+
+  async function guardarEvento(e) {
     e.preventDefault();
 
     if (Number(minimo) > Number(maximo)) {
@@ -19,42 +55,48 @@ function EventosAdmin({ eventos, setEventos, volver }) {
       return;
     }
 
+    const empaquetadoDescripcion = JSON.stringify({
+      organizador: msgOrganizador,
+      secreto: msgSecreto,
+      wishlist: msgWishlist
+    });
+
     try {
       setGuardando(true);
-      const nuevoEvento = await enviarDatos("eventos", {
+      
+      const respuesta = await enviarDatos("eventos", {
+        id: idEdicion,
         nombre: nombre,
-        descripcion: descripcion,
+        descripcion: empaquetadoDescripcion,
         fecha: fecha,
         minimo: Number(minimo),
         maximo: Number(maximo)
       });
 
       const eventoConvertido = {
-        id: nuevoEvento.id,
-        nombre: nuevoEvento.nombre,
-        descripcion: nuevoEvento.descripcion || "",
-        fecha: nuevoEvento.fecha,
-        minimo: nuevoEvento.presupuesto_min,
-        maximo: nuevoEvento.presupuesto_max,
-        estado: nuevoEvento.estado
+        id: respuesta.id,
+        nombre: respuesta.nombre,
+        descripcion: respuesta.descripcion || "",
+        fecha: respuesta.fecha,
+        minimo: respuesta.presupuesto_min,
+        maximo: respuesta.presupuesto_max,
+        estado: respuesta.estado
       };
 
-      setEventos((anteriores) => [
-        eventoConvertido,
-        ...anteriores
-      ]);
+      if (idEdicion) {
+        setEventos((anteriores) =>
+          anteriores.map((ev) => (ev.id === idEdicion ? eventoConvertido : ev))
+        );
+        alert("¡Estructura de pautas actualizada con éxito!");
+      } else {
+        setEventos((anteriores) => [eventoConvertido, ...anteriores]);
+        alert("Evento guardado correctamente.");
+      }
 
-      alert("Evento guardado correctamente.");
-
-      setNombre("");
-      setDescripcion("");
-      setFecha("");
-      setMinimo("30");
-      setMaximo("60");
       setMostrarFormulario(false);
-
+      setIdEdicion(null);
     } catch (error) {
-      alert("No se pudo guardar el evento: " + error.message);
+      alert("No se pudo procesar el evento: " + error.message);
     } finally {
       setGuardando(false);
     }
@@ -68,78 +110,67 @@ function EventosAdmin({ eventos, setEventos, volver }) {
 
       <div className="titulo-seccion">
         <div>
-          <h1>Eventos</h1>
-          <p>Crea y administra los intercambios de regalos.</p>
+          <h1>Editor Avanzado de Pautas</h1>
+          <p>Personaliza dinámicamente cada bloque del panel que visualizan tus participantes.</p>
         </div>
-
-        <button onClick={() => setMostrarFormulario(true)}>
-          + Crear evento
-        </button>
+        <button onClick={abrirCrear}>+ Crear evento</button>
       </div>
 
       {mostrarFormulario && (
         <div className="formulario-evento">
-          <h2>Crear nuevo evento</h2>
+          <h2>{idEdicion ? "✏️ Personalizar Bloques Informativos" : "🎁 Crear nuevo evento"}</h2>
 
-          <form onSubmit={crearEvento}>
+          <form onSubmit={guardarEvento}>
             <label>Nombre del evento</label>
-            <input
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej. Navidad 2026"
-              required
-            />
+            <input value={nombre} onChange={(e) => setNombre(e.target.value)} required />
 
-            <label>Descripción</label>
-            <textarea
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              placeholder="Descripción del intercambio"
-            />
-
-            <label>Fecha del intercambio</label>
-            <input
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              required
-            />
+            <label>📅 Fecha del intercambio</label>
+            <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
 
             <div className="campos-dinero">
               <div>
                 <label>Presupuesto mínimo (S/)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={minimo}
-                  onChange={(e) => setMinimo(e.target.value)}
-                  required
-                />
+                <input type="number" value={minimo} onChange={(e) => setMinimo(e.target.value)} required />
               </div>
-
               <div>
                 <label>Presupuesto máximo (S/)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={maximo}
-                  onChange={(e) => setMaximo(e.target.value)}
-                  required
-                />
+                <input type="number" value={maximo} onChange={(e) => setMaximo(e.target.value)} required />
               </div>
             </div>
 
+            <h3 style={{ marginTop: "20px", color: "#655345", fontSize: "15px" }}>✍️ Personalización de Tarjetas</h3>
+            <hr style={{ borderColor: "#dfd5c6", marginBottom: "15px" }} />
+
+            <label>📢 Tarjeta 1: Mensaje del Organizador</label>
+            <textarea
+              value={msgOrganizador}
+              onChange={(e) => setMsgOrganizador(e.target.value)}
+              placeholder="Notas generales, lugar de la fiesta, penalizaciones..."
+              required
+            />
+
+            <label>🤫 Tarjeta 2: Pauta de Confidencialidad (Secreto)</label>
+            <textarea
+              value={msgSecreto}
+              onChange={(e) => setMsgSecreto(e.target.value)}
+              placeholder="Escribe las condiciones para mantener el anonimato..."
+              required
+            />
+
+            <label>💝 Tarjeta 3: Instrucción de la Wishlist</label>
+            <textarea
+              value={msgWishlist}
+              onChange={(e) => setMsgWishlist(e.target.value)}
+              placeholder="Instrucciones sobre cómo rellenar los gustos..."
+              required
+            />
+
             <div className="acciones-formulario">
-              <button
-                type="button"
-                className="boton-secundario"
-                onClick={() => setMostrarFormulario(false)}
-              >
+              <button type="button" className="boton-secundario" onClick={() => setMostrarFormulario(false)}>
                 Cancelar
               </button>
-
               <button type="submit" disabled={guardando}>
-                {guardando ? "Guardando..." : "Guardar evento"}
+                {guardando ? "Guardando Configuración..." : "Guardar Cambios Avanzados"}
               </button>
             </div>
           </form>
@@ -148,32 +179,20 @@ function EventosAdmin({ eventos, setEventos, volver }) {
 
       <div className="lista-eventos">
         {eventos.map((evento) => (
-          <div className="evento-card" key={evento.id}>
+          <div className="evento-card" key={evento.id} onClick={() => abrirEditar(evento)}>
             <div className="evento-icono">🎁</div>
-
             <div className="evento-info">
               <h2>{evento.nombre}</h2>
-              <p>{evento.descripcion}</p>
-
-              <div className="datos-evento">
-                <span>
-                  📅 {evento.fecha}
-                </span>
-
-                <span>
-                  💰 S/ {evento.minimo} - S/ {evento.maximo}
-                </span>
+              <p>Cambia los parametros del evento</p>
+              <div className="datos-evento" style={{ marginTop: "10px" }}>
+                <span>📅 {evento.fecha}</span>
+                <span>💰 S/ {evento.minimo} - S/ {evento.maximo}</span>
               </div>
             </div>
-
             <span className="estado-evento">{evento.estado}</span>
           </div>
         ))}
       </div>
-
-      {eventos.length === 0 && (
-        <p>Todavía no has creado eventos.</p>
-      )}
     </div>
   );
 }
