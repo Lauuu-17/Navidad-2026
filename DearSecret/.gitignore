@@ -10,3 +10,4 @@ dist-ssr
 !.env.example
 
 .netlify
+node_modules/
