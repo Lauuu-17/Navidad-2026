@@ -241,22 +241,19 @@ async function cargarUsuarios() {
   }
   }
 
-  
-
   return (
     <div className="app">
       {pantalla === "login" && (
         <div className="login-container">
           <div className="login-card">
             <div className="logo">🎁</div>
-            <h1>Dear Secret</h1>
+            <h1>Merequetengue Navideño</h1>
             <p className="subtitulo">TITULO</p>
 
             <form onSubmit={iniciarSesion}>
-              <label>Usuario</label>
+              <label>¿Quien eres?</label>
               <input
                 type="text"
-                placeholder="Ingresa tu usuario"
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
                 required
@@ -266,7 +263,6 @@ async function cargarUsuarios() {
                 <div className="input-contrasena-container">
                 <input
                   type={mostrarContrasena ? "text" : "password"}
-                  placeholder="Ingresa tu contraseña"
                   value={contrasena}
                   onChange={(e) => setContrasena(e.target.value)}
                   required
@@ -289,7 +285,6 @@ async function cargarUsuarios() {
                 {cargandoLogin ? "Validando..." : "Iniciar sesión"}
               </button>
             </form>
-            <p className="nota">Texto prueba.</p>
           </div>
         </div>
       )}
