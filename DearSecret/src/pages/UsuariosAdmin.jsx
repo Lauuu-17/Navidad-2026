@@ -8,6 +8,7 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
   const [nombre, setNombre] = useState("");
   const [usuario, setUsuario] = useState("");
   const [contrasena, setContrasena] = useState("");
+  const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [eventoId, setEventoId] = useState("");
   const [guardando, setGuardando] = useState(false);
 
@@ -154,13 +155,23 @@ function UsuariosAdmin({ usuarios, setUsuarios, eventos, volver }) {
             />
 
             <label>Contraseña de acceso</label>
-            <input
-              type="password"
-              value={contrasena}
-              onChange={(e) => setContrasena(e.target.value)}
-              placeholder="Contraseña inicial"
-              required
-            />
+            <div className="input-contrasena-container">
+              <input
+                type={mostrarContrasena ? "text" : "password"}
+                value={contrasena}
+                onChange={(e) => setContrasena(e.target.value)}
+                placeholder="Contraseña inicial"
+                required
+              />
+              <button 
+                type="button" 
+                className="boton-mostrar-ocultar" 
+                onClick={() => setMostrarContrasena(!mostrarContrasena)}
+              >
+                {mostrarContrasena ? "🙈" : "👁️"}
+              </button>
+            </div>
+
 
             <label>Asignar a un evento</label>
             <select
