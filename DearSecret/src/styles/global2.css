@@ -1,244 +1,286 @@
-
-
-
-/* ==========================================
-   MEREQUETENGUE NAVIDEÑO
-   Paleta de colores unificada
-   ========================================== */
-
-:root {
-  --bg-principal: #F7F0DF;
-  --bg-card: #FFFCF5;
-  --bg-card-hover: #F1E8D4;
-  --borde-contenedor: #E4DCCB;
-
-  --texto-oscuro: #302D32;
-  --texto-secundario: #6B625F;
-
-  --detalles-dorados: #B8D943;
-  --nav-bosque: #253B2D;
-  --nav-ciruela: #583B50;
-  --nav-coral: #D96C55;
-
-  --nav-exito: #28613E;
-  --nav-error: #A33D32;
-
-  --nav-radio: 14px;
-  --nav-sombra: 0 6px 18px rgba(37, 59, 45, 0.08);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* Fondo general */
-body {
-  background-color: var(--bg-principal);
-  color: var(--texto-oscuro);
+button, input, textarea {
+  font: inherit;
 }
 
-/* Pantalla de inicio de sesión */
+/* ==========================================================================
+   ESTILOS EXCLUSIVOS PARA LA PANTALLA DE LOGIN (MODO OSCURO PREMIUM / AMBER)
+   ========================================================================== */
+
 .login-container {
-  background: linear-gradient(135deg, #253B2D, #17271E);
-  color: #FFFCF5;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(180deg, #253B2D 0%, #1B2A21 100%);
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #ffffff;
 }
 
 .login-card {
-  background: var(--bg-card);
-  color: var(--texto-oscuro);
-  border: 1px solid var(--borde-contenedor);
-  border-radius: 22px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  width: 100%;
+  max-width: 450px;
+  padding: 40px 20px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.login-card h1,
-.login-card h2,
-.login-card h3,
+.logo {
+  font-size: 56px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-card h1 {
+  text-align: center;
+  color: #ffffff;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 30px;
+}
+
+.subtitulo, .nota {
+  text-align: center;
+  color: #a7a7a7;
+  margin: 15px 0 0 0;
+  font-size: 14px;
+}
+
+.login-card form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .login-card label {
-  color: var(--nav-bosque);
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 14px;
+  margin-bottom: -10px;
+  align-self: flex-start;
 }
 
-/* Panel principal */
+.login-card input {
+  padding: 14px;
+  border: 1px solid #727272;
+  border-radius: 4px;
+  background: #121212;
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+.input-contrasena-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Espacio extra a la derecha del input para que el texto no tape el ojo */
+.login-card .input-contrasena-container input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+/* Botón interactivo para alternar visibilidad */
+.boton-mostrar-ocultar {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
+}
+
+.boton-mostrar-ocultar:hover {
+  transform: scale(1.1);
+}
+
+/* Botón estilo píldora exclusivo para el Login */
+.boton-login {
+  cursor: pointer;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 32px;
+  background: #d97706;
+  color: #000000; 
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.boton-login:hover {
+  background: #f59e0b;
+  transform: scale(1.02);
+}
+
+
+/* ==========================================================================
+   ESTILOS PARA LOS PANELES INTERNOS (MODO CLARO / VERDE PINO PREMIUM)
+   ========================================================================== */
+
 .dashboard-theme {
-  background-color: var(--bg-principal);
-  color: var(--texto-oscuro);
+  min-height: 100vh;
+  background: #f8fafc; /* Fondo gris claro impecable */
+  color: #0f172a;
+  font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Encabezado del Dashboard */
 .encabezado {
-  background-color: var(--nav-bosque);
-  border-bottom: 4px solid var(--detalles-dorados);
-  color: #FFFCF5;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 16px 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.encabezado h1,
-.encabezado h2,
-.encabezado h3,
-.encabezado p {
-  color: #FFFCF5;
+.encabezado h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #064e3b; /* Identificador en verde pino */
 }
 
-.dashboard-theme h1,
-.dashboard-theme h2,
-.dashboard-theme h3 {
-  color: var(--nav-bosque);
+/* Contenido Principal */
+.contenido {
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 20px;
 }
 
-/* Tarjetas y contenedores */
-.card,
-.event-card,
-.resumen-card,
-.control-sorteo,
-.tabla-contenedor,
-.wishlist-form,
-.reglas-card,
-.reglas-info,
-.regla-item,
-.preview-block,
-.secreto-bloqueado,
-.secreto-revelado,
-.formulario-evento {
-  background-color: var(--bg-card);
-  color: var(--texto-oscuro);
-  border: 1px solid var(--borde-contenedor);
-  border-radius: var(--nav-radio);
-  box-shadow: var(--nav-sombra);
+.contenido h1 {
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
-/* Mensaje de bienvenida */
-.bienvenida {
-  background-color: var(--nav-bosque);
-  color: #FFFCF5;
-  border-left: 5px solid var(--detalles-dorados);
-  border-radius: var(--nav-radio);
+.contenido > p {
+  color: #64748b;
+  margin-bottom: 24px;
+  font-size: 15px;
 }
 
-.bienvenida h1,
-.bienvenida h2,
-.bienvenida h3,
-.bienvenida p {
-  color: #FFFCF5;
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
 }
 
-/* Formularios */
-input,
-select,
-textarea {
-  background-color: #FFFFFF;
-  color: var(--texto-oscuro);
-  border: 1px solid var(--borde-contenedor);
-  border-radius: 9px;
+.tarjeta {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
-input:focus,
-select:focus,
-textarea:focus {
-  outline: 2px solid var(--nav-bosque);
-  border-color: var(--nav-bosque);
+.tarjeta h3 {
+  color: #064e3b;
+  font-size: 18px;
+  font-weight: 600;
 }
 
-label {
-  color: var(--texto-oscuro);
+.tarjeta p {
+  color: #475569;
+  line-height: 1.6;
+  font-size: 14px;
+  flex: 1;
 }
 
-/* Botones principales */
-button,
-.boton-agregar-inline {
-  background-color: var(--nav-bosque);
-  color: #FFFCF5;
-  border: 1px solid var(--nav-bosque);
-  border-radius: 9px;
-  transition: background-color 0.2s ease,
-              transform 0.2s ease;
+.boton-dashboard {
+  cursor: pointer;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  background: #064e3b;
+  color: white;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
-button:hover,
-.boton-agregar-inline:hover {
-  background-color: #35563F;
-  border-color: #35563F;
+.boton-dashboard:hover {
+  background: #047857;
+  transform: translateY(-1px);
 }
 
-button:active {
-  transform: scale(0.98);
-}
-
-/* Botones secundarios */
-button.btn-secundario,
 .boton-secundario {
-  background-color: var(--bg-card);
-  color: var(--nav-bosque);
-  border: 1px solid var(--borde-contenedor);
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 20px;
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
-button.btn-secundario:hover,
 .boton-secundario:hover {
-  background-color: var(--bg-card-hover);
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
-/* Tablas */
-table {
-  color: var(--texto-oscuro);
-  border-color: var(--borde-contenedor);
+/* --- Banner Verde de Bienvenida del Participante --- */
+.bienvenida {
+  background: #064e3b;
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 10px 15px -3px rgba(6, 78, 59, 0.2);
 }
 
-thead,
-th {
-  background-color: var(--bg-card-hover);
-  color: var(--nav-bosque);
+.bienvenida span {
+  color: #a7f3d0;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-td {
-  border-color: var(--borde-contenedor);
+.bienvenida h1 {
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 12px 0;
 }
 
-/* Acentos decorativos */
-.tag-nuevo,
-.etiqueta-nuevo {
-  background-color: var(--nav-ciruela);
-  color: #FFFFFF;
+.bienvenida p {
+  color: #d1fae5;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-.estado-evento {
-  background-color: #EAF2C9;
-  color: var(--nav-bosque);
-  border-radius: 20px;
-}
-
-/* Estados de éxito y error */
-.mensaje-exito,
-.estado-exito {
-  background-color: #E5F2E7;
-  color: var(--nav-exito);
-  border: 1px solid #B9D8BE;
-}
-
-.mensaje-error,
-.estado-error {
-  background-color: #FBE9E5;
-  color: var(--nav-error);
-  border: 1px solid #EBC1B9;
-}
-
-/* Botones de eliminar */
-button.btn-eliminar,
-button.boton-eliminar,
-.boton-eliminar {
-  background-color: var(--nav-coral);
-  color: #FFFFFF;
-  border-color: var(--nav-coral);
-}
-
-/* Accesibilidad con teclado */
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 3px solid var(--detalles-dorados);
-  outline-offset: 3px;
-}
-
-/* Transiciones respetuosas con el usuario */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-  }
-}
