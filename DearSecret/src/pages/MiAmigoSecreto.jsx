@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { obtenerDatos } from "../services/api";
 
-// Recibimos 'usuarioId' y 'eventoId' desde App.jsx
 function MiAmigoSecreto({ usuarioId, eventoId, volver }) {
   const [asignacion, setAsignacion] = useState(null);
   const [sorteoPublicado, setSorteoPublicado] = useState(false);
@@ -13,13 +12,11 @@ function MiAmigoSecreto({ usuarioId, eventoId, volver }) {
 
       try {
         setCargando(true);
-        // Consultamos al backend si existe un emparejamiento para este UUID de usuario
-        const datos = await obtenerDatos(`asignaciones?participanteId=${usuarioId}&eventoId=${eventoId}`);
         
+        const datos = await obtenerDatos(`asignaciones?participanteId=${usuarioId}&eventoId=${eventoId}`);
         if (datos && datos.destinatario_nombre) {
           setAsignacion({
             nombre: datos.destinatario_nombre,
-            // Si la consulta te trae la wishlist del destinatario, la mapeamos aquí:
             descripcion: datos.destinatario_wishlist || "Revisa la Wishlist de esta persona para ver sus gustos."
           });
           setSorteoPublicado(true);

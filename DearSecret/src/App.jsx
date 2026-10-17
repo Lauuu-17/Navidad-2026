@@ -47,13 +47,21 @@ function App() {
         if (errorPerfil) throw errorPerfil;
 
         if (perfil) {
+          const { data: userParts } = await supabaseCliente
+            .from("participaciones")
+            .select("evento_id, estado")
+            .eq("usuario_id", perfil.id);
+
+          const participacionActiva = userParts?.find((p) => p.estado === "activo") || userParts?.[0];
+
           const usuarioActual = {
             id: perfil.id, 
             nombre: perfil.nombre,
             usuario: perfil.username,
             rol: perfil.rol,
-            eventoId: ""
+            eventoId: participacionActiva?.evento_id || ""
           };
+
           setUsuarioLogueado(usuarioActual);
           setRol(perfil.rol);
           setPantalla(perfil.rol === "admin" ? "admin" : "participante");
@@ -86,7 +94,6 @@ function App() {
           setCargandoUsuarios(true);
           setErrorUsuarios("");
           
-          // 1. Forzamos a que primero se resuelvan y guarden los usuarios en memoria
           const datosUsuarios = await obtenerDatos("usuarios");
           const usuariosConvertidos = datosUsuarios.map((u) => {
             let evId = "";
@@ -103,10 +110,8 @@ function App() {
           });
           setUsuarios(usuariosConvertidos);
           
-          // 2. Cargamos los eventos de fondo
           await cargarEventos();
 
-          // 3. Pasamos los usuarios en tiempo real a las reglas para evitar el desfase asíncrono
           await cargarReglas(usuariosConvertidos);
           
         } catch (error) {
@@ -116,8 +121,16 @@ function App() {
           setCargandoUsuarios(false);
         }
       } else if (rol === "participante") {
-        cargarEventos(); 
+        await cargarEventos();
+        setUsuarioLogueado((prev) => {
+          if (prev && prev.eventoId) {
+            return { ...prev, eventoId: prev.eventoId };
+          }
+          return prev;
+        });
       }
+
+
     }
     
     cargarDatosSecuenciales();
